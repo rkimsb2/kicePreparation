@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>RegexParsingTest.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+RegexParsingTest.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">regex</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">IOException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">PrintWriter</span><span class="s2">;</span>
+
+<span class="s0">public class </span><span class="s1">RegexParsingTest </span><span class="s2">{</span>
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) {</span>
+        <span class="s3">// 테스트 파일 생성</span>
+        <span class="s1">createTestFile</span><span class="s2">();</span>
+        
+        <span class="s3">// 패턴 파싱 테스트</span>
+        <span class="s1">PatternParser parser </span><span class="s2">= </span><span class="s0">new </span><span class="s1">PatternParser</span><span class="s2">(</span><span class="s4">&quot;test_data.txt&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;=== 파일 내용 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">parser</span><span class="s2">.</span><span class="s1">getAllContent</span><span class="s2">();</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 이메일 추출 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">parser</span><span class="s2">.</span><span class="s1">extractEmails</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 전화번호 추출 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">parser</span><span class="s2">.</span><span class="s1">extractPhoneNumbers</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 날짜 추출 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">parser</span><span class="s2">.</span><span class="s1">extractDates</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== IP 주소 추출 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">parser</span><span class="s2">.</span><span class="s1">extractIpAddresses</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== URL 추출 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">parser</span><span class="s2">.</span><span class="s1">extractUrls</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 한글 이름 추출 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">parser</span><span class="s2">.</span><span class="s1">extractKoreanNames</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 금액 추출 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">parser</span><span class="s2">.</span><span class="s1">extractPrices</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+        
+        <span class="s3">// 그룹 캡처 테스트</span>
+        <span class="s1">GroupCaptureParser groupParser </span><span class="s2">= </span><span class="s0">new </span><span class="s1">GroupCaptureParser</span><span class="s2">(</span><span class="s4">&quot;test_data.txt&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 날짜 그룹 분리 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">groupParser</span><span class="s2">.</span><span class="s1">parseDatesWithGroups</span><span class="s2">();</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 이메일 그룹 분리 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">groupParser</span><span class="s2">.</span><span class="s1">parseEmailsWithGroups</span><span class="s2">();</span>
+        
+        <span class="s3">// 문자열 치환 테스트</span>
+        <span class="s1">StringReplacementParser replaceParser </span><span class="s2">= </span><span class="s0">new </span><span class="s1">StringReplacementParser</span><span class="s2">(</span><span class="s4">&quot;test_data.txt&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 전화번호 형식 변경 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">replaceParser</span><span class="s2">.</span><span class="s1">replacePhoneNumberFormat</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 이메일 마스킹 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">replaceParser</span><span class="s2">.</span><span class="s1">maskEmails</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 날짜 형식 변경 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">replaceParser</span><span class="s2">.</span><span class="s1">formatDates</span><span class="s2">().</span><span class="s1">forEach</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">out::println</span><span class="s2">);</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 테스트용 파일 생성</span>
+    <span class="s0">private static void </span><span class="s1">createTestFile</span><span class="s2">() {</span>
+        <span class="s0">try </span><span class="s2">(</span><span class="s1">PrintWriter writer </span><span class="s2">= </span><span class="s0">new </span><span class="s1">PrintWriter</span><span class="s2">(</span><span class="s4">&quot;test_data.txt&quot;</span><span class="s2">)) {</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;홍길동의 이메일: hong@example.com&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;전화번호: 010-1234-5678&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;가입일: 2024-01-15&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;서버 IP: 192.168.1.100&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;웹사이트: https://www.example.com&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;김철수 회원님의 결제 금액: ₩50,000&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;로그 시간: 2024-02-20 14:30:25&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;관리자 이메일: admin@company.co.kr&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;긴급 연락처: 010-9876-5432&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;데이터베이스 주소: 10.0.0.1&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;박영희님의 주문 금액: ₩1,200,000&quot;</span><span class="s2">);</span>
+            <span class="s1">writer</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;API 엔드포인트: https://api.service.com/v1/users&quot;</span><span class="s2">);</span>
+        <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">IOException e</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">err</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;테스트 파일 생성 오류: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span></pre>
+</body>
+</html>

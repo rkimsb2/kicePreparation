@@ -1,0 +1,70 @@
+<html>
+<head>
+<title>StringReplacementParser.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+StringReplacementParser.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">regex</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">example</span><span class="s2">.</span><span class="s1">string</span><span class="s2">.</span><span class="s1">RegexFileParser</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">ArrayList</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">regex</span><span class="s2">.</span><span class="s1">Pattern</span><span class="s2">;</span>
+
+<span class="s0">public class </span><span class="s1">StringReplacementParser </span><span class="s0">extends </span><span class="s1">RegexFileParser </span><span class="s2">{</span>
+    
+    <span class="s0">public </span><span class="s1">StringReplacementParser</span><span class="s2">(</span><span class="s1">String fileName</span><span class="s2">) {</span>
+        <span class="s0">super</span><span class="s2">(</span><span class="s1">fileName</span><span class="s2">);</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 전화번호 형식 변경 (010-1234-5678 → 010.1234.5678)</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">replacePhoneNumberFormat</span><span class="s2">() {</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">replacedLines </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">Pattern pattern </span><span class="s2">= </span><span class="s1">Pattern</span><span class="s2">.</span><span class="s1">compile</span><span class="s2">(</span><span class="s4">&quot;(</span><span class="s0">\\</span><span class="s4">d{3})-(</span><span class="s0">\\</span><span class="s4">d{4})-(</span><span class="s0">\\</span><span class="s4">d{4})&quot;</span><span class="s2">);</span>
+        
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">String line </span><span class="s2">: </span><span class="s1">lines</span><span class="s2">) {</span>
+            <span class="s1">String replaced </span><span class="s2">= </span><span class="s1">pattern</span><span class="s2">.</span><span class="s1">matcher</span><span class="s2">(</span><span class="s1">line</span><span class="s2">).</span><span class="s1">replaceAll</span><span class="s2">(</span><span class="s4">&quot;$1.$2.$3&quot;</span><span class="s2">);</span>
+            <span class="s1">replacedLines</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">replaced</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">replacedLines</span><span class="s2">;</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 이메일 마스킹 (test@example.com → t***@example.com)</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">maskEmails</span><span class="s2">() {</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">maskedLines </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">Pattern pattern </span><span class="s2">= </span><span class="s1">Pattern</span><span class="s2">.</span><span class="s1">compile</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\\</span><span class="s4">b([A-Za-z0-9._%+-])[A-Za-z0-9._%+-]*@([A-Za-z0-9.-]+</span><span class="s0">\\</span><span class="s4">.[A-Z|a-z]{2,})</span><span class="s0">\\</span><span class="s4">b&quot;</span><span class="s2">);</span>
+        
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">String line </span><span class="s2">: </span><span class="s1">lines</span><span class="s2">) {</span>
+            <span class="s1">String masked </span><span class="s2">= </span><span class="s1">pattern</span><span class="s2">.</span><span class="s1">matcher</span><span class="s2">(</span><span class="s1">line</span><span class="s2">).</span><span class="s1">replaceAll</span><span class="s2">(</span><span class="s4">&quot;$1***@$2&quot;</span><span class="s2">);</span>
+            <span class="s1">maskedLines</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">masked</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">maskedLines</span><span class="s2">;</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 날짜 형식 변경 (2024-01-15 → 2024년 1월 15일)</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">formatDates</span><span class="s2">() {</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">formattedLines </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">Pattern pattern </span><span class="s2">= </span><span class="s1">Pattern</span><span class="s2">.</span><span class="s1">compile</span><span class="s2">(</span><span class="s4">&quot;(</span><span class="s0">\\</span><span class="s4">d{4})-(</span><span class="s0">\\</span><span class="s4">d{2})-(</span><span class="s0">\\</span><span class="s4">d{2})&quot;</span><span class="s2">);</span>
+        
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">String line </span><span class="s2">: </span><span class="s1">lines</span><span class="s2">) {</span>
+            <span class="s1">String formatted </span><span class="s2">= </span><span class="s1">pattern</span><span class="s2">.</span><span class="s1">matcher</span><span class="s2">(</span><span class="s1">line</span><span class="s2">).</span><span class="s1">replaceAll</span><span class="s2">(</span><span class="s4">&quot;$1년 $2월 $3일&quot;</span><span class="s2">);</span>
+            <span class="s1">formattedLines</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">formatted</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">formattedLines</span><span class="s2">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span></pre>
+</body>
+</html>

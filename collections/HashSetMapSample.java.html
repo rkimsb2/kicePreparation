@@ -1,0 +1,274 @@
+<html>
+<head>
+<title>HashSetMapSample.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #6aab73;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+HashSetMapSample.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">collections</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">ArrayList</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Arrays</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">HashMap</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">HashSet</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">LinkedHashMap</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Map</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Set</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">TreeSet</span><span class="s2">;</span>
+
+<span class="s0">public class </span><span class="s1">HashSetMapSample </span><span class="s2">{</span>
+    
+    <span class="s3">// 문제 1: 중복 제거 및 정렬</span>
+    <span class="s3">// 배열에서 중복을 제거하고 오름차순으로 정렬하여 출력</span>
+    <span class="s0">public static void </span><span class="s1">problem1</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;=== 문제 1: 중복 제거 및 정렬 ===&quot;</span><span class="s2">);</span>
+        <span class="s0">int</span><span class="s2">[] </span><span class="s1">arr </span><span class="s2">= {</span><span class="s5">5</span><span class="s2">, </span><span class="s5">2</span><span class="s2">, </span><span class="s5">8</span><span class="s2">, </span><span class="s5">2</span><span class="s2">, </span><span class="s5">9</span><span class="s2">, </span><span class="s5">1</span><span class="s2">, </span><span class="s5">5</span><span class="s2">, </span><span class="s5">6</span><span class="s2">};</span>
+        
+        <span class="s3">// TreeSet 사용으로 중복 제거와 정렬을 동시에</span>
+        <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">uniqueSet </span><span class="s2">= </span><span class="s0">new </span><span class="s1">TreeSet</span><span class="s2">&lt;&gt;();</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">num </span><span class="s2">: </span><span class="s1">arr</span><span class="s2">) {</span>
+            <span class="s1">uniqueSet</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">num</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s4">&quot;결과: &quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">num </span><span class="s2">: </span><span class="s1">uniqueSet</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s1">num </span><span class="s2">+ </span><span class="s4">&quot; &quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 문제 2: 문자열에서 각 문자의 빈도수 계산</span>
+    <span class="s0">public static void </span><span class="s1">problem2</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 문제 2: 문자 빈도수 계산 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">String str </span><span class="s2">= </span><span class="s4">&quot;programming&quot;</span><span class="s2">;</span>
+        
+        <span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">Character</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">charCount </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+        
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">char </span><span class="s1">c </span><span class="s2">: </span><span class="s1">str</span><span class="s2">.</span><span class="s1">toCharArray</span><span class="s2">()) {</span>
+            <span class="s1">charCount</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">c</span><span class="s2">, </span><span class="s1">charCount</span><span class="s2">.</span><span class="s1">getOrDefault</span><span class="s2">(</span><span class="s1">c</span><span class="s2">, </span><span class="s5">0</span><span class="s2">) + </span><span class="s5">1</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;문자열: &quot; </span><span class="s2">+ </span><span class="s1">str</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;빈도수:&quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">Character</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">entry </span><span class="s2">: </span><span class="s1">charCount</span><span class="s2">.</span><span class="s1">entrySet</span><span class="s2">()) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getKey</span><span class="s2">() + </span><span class="s4">&quot;: &quot; </span><span class="s2">+ </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 문제 3: 두 배열의 교집합 구하기</span>
+    <span class="s0">public static void </span><span class="s1">problem3</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 문제 3: 두 배열의 교집합 ===&quot;</span><span class="s2">);</span>
+        <span class="s0">int</span><span class="s2">[] </span><span class="s1">arr1 </span><span class="s2">= {</span><span class="s5">1</span><span class="s2">, </span><span class="s5">2</span><span class="s2">, </span><span class="s5">3</span><span class="s2">, </span><span class="s5">4</span><span class="s2">, </span><span class="s5">5</span><span class="s2">};</span>
+        <span class="s0">int</span><span class="s2">[] </span><span class="s1">arr2 </span><span class="s2">= {</span><span class="s5">4</span><span class="s2">, </span><span class="s5">5</span><span class="s2">, </span><span class="s5">6</span><span class="s2">, </span><span class="s5">7</span><span class="s2">, </span><span class="s5">8</span><span class="s2">};</span>
+        
+        <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">set1 </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashSet</span><span class="s2">&lt;&gt;();</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">num </span><span class="s2">: </span><span class="s1">arr1</span><span class="s2">) {</span>
+            <span class="s1">set1</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">num</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">intersection </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashSet</span><span class="s2">&lt;&gt;();</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">num </span><span class="s2">: </span><span class="s1">arr2</span><span class="s2">) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">set1</span><span class="s2">.</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">num</span><span class="s2">)) {</span>
+                <span class="s1">intersection</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">num</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;배열1: &quot; </span><span class="s2">+ </span><span class="s1">Arrays</span><span class="s2">.</span><span class="s1">toString</span><span class="s2">(</span><span class="s1">arr1</span><span class="s2">));</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;배열2: &quot; </span><span class="s2">+ </span><span class="s1">Arrays</span><span class="s2">.</span><span class="s1">toString</span><span class="s2">(</span><span class="s1">arr2</span><span class="s2">));</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;교집합: &quot; </span><span class="s2">+ </span><span class="s1">intersection</span><span class="s2">);</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 문제 4: 학생 성적 관리 시스템</span>
+    <span class="s0">static class </span><span class="s1">Student </span><span class="s2">{</span>
+        <span class="s1">String name</span><span class="s2">;</span>
+        <span class="s0">int </span><span class="s1">score</span><span class="s2">;</span>
+        
+        <span class="s1">Student</span><span class="s2">(</span><span class="s1">String name</span><span class="s2">, </span><span class="s0">int </span><span class="s1">score</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">name </span><span class="s2">= </span><span class="s1">name</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">score </span><span class="s2">= </span><span class="s1">score</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">@Override</span>
+        <span class="s0">public </span><span class="s1">String toString</span><span class="s2">() {</span>
+            <span class="s0">return </span><span class="s1">name </span><span class="s2">+ </span><span class="s4">&quot;(&quot; </span><span class="s2">+ </span><span class="s1">score </span><span class="s2">+ </span><span class="s4">&quot;)&quot;</span><span class="s2">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s0">public static void </span><span class="s1">problem4</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 문제 4: 학생 성적 관리 ===&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Student</span><span class="s2">&gt; </span><span class="s1">students </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">students</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s4">&quot;김철수&quot;</span><span class="s2">, </span><span class="s0">new </span><span class="s1">Student</span><span class="s2">(</span><span class="s4">&quot;김철수&quot;</span><span class="s2">, </span><span class="s5">85</span><span class="s2">));</span>
+        <span class="s1">students</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s4">&quot;이영희&quot;</span><span class="s2">, </span><span class="s0">new </span><span class="s1">Student</span><span class="s2">(</span><span class="s4">&quot;이영희&quot;</span><span class="s2">, </span><span class="s5">92</span><span class="s2">));</span>
+        <span class="s1">students</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s4">&quot;박민수&quot;</span><span class="s2">, </span><span class="s0">new </span><span class="s1">Student</span><span class="s2">(</span><span class="s4">&quot;박민수&quot;</span><span class="s2">, </span><span class="s5">78</span><span class="s2">));</span>
+        <span class="s1">students</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s4">&quot;정수진&quot;</span><span class="s2">, </span><span class="s0">new </span><span class="s1">Student</span><span class="s2">(</span><span class="s4">&quot;정수진&quot;</span><span class="s2">, </span><span class="s5">95</span><span class="s2">));</span>
+        
+        <span class="s3">// 성적순으로 정렬 (내림차순)</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Student</span><span class="s2">&gt; </span><span class="s1">sortedStudents </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;(</span><span class="s1">students</span><span class="s2">.</span><span class="s1">values</span><span class="s2">());</span>
+        <span class="s1">sortedStudents</span><span class="s2">.</span><span class="s1">sort</span><span class="s2">((</span><span class="s1">s1</span><span class="s2">, </span><span class="s1">s2</span><span class="s2">) </span><span class="s1">-&gt; s2</span><span class="s2">.</span><span class="s1">score </span><span class="s2">- </span><span class="s1">s1</span><span class="s2">.</span><span class="s1">score</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;성적순 정렬 결과:&quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">Student student </span><span class="s2">: </span><span class="s1">sortedStudents</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">student</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">// 특정 점수 이상인 학생 찾기</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">90점 이상인 학생:&quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">Student student </span><span class="s2">: </span><span class="s1">students</span><span class="s2">.</span><span class="s1">values</span><span class="s2">()) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">student</span><span class="s2">.</span><span class="s1">score </span><span class="s2">&gt;= </span><span class="s5">90</span><span class="s2">) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">student</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 문제 5: 그룹 애너그램 (해시맵 활용)</span>
+    <span class="s0">public static void </span><span class="s1">problem5</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 문제 5: 그룹 애너그램 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">String</span><span class="s2">[] </span><span class="s1">words </span><span class="s2">= {</span><span class="s4">&quot;eat&quot;</span><span class="s2">, </span><span class="s4">&quot;tea&quot;</span><span class="s2">, </span><span class="s4">&quot;tan&quot;</span><span class="s2">, </span><span class="s4">&quot;ate&quot;</span><span class="s2">, </span><span class="s4">&quot;nat&quot;</span><span class="s2">, </span><span class="s4">&quot;bat&quot;</span><span class="s2">};</span>
+        
+        <span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt;&gt; </span><span class="s1">anagramGroups </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+        
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">String word </span><span class="s2">: </span><span class="s1">words</span><span class="s2">) {</span>
+            <span class="s3">// 문자를 정렬하여 키로 사용</span>
+            <span class="s0">char</span><span class="s2">[] </span><span class="s1">chars </span><span class="s2">= </span><span class="s1">word</span><span class="s2">.</span><span class="s1">toCharArray</span><span class="s2">();</span>
+            <span class="s1">Arrays</span><span class="s2">.</span><span class="s1">sort</span><span class="s2">(</span><span class="s1">chars</span><span class="s2">);</span>
+            <span class="s1">String key </span><span class="s2">= </span><span class="s0">new </span><span class="s1">String</span><span class="s2">(</span><span class="s1">chars</span><span class="s2">);</span>
+            
+            <span class="s1">anagramGroups</span><span class="s2">.</span><span class="s1">computeIfAbsent</span><span class="s2">(</span><span class="s1">key</span><span class="s2">, </span><span class="s1">k -&gt; </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;()).</span><span class="s1">add</span><span class="s2">(</span><span class="s1">word</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;입력 배열: &quot; </span><span class="s2">+ </span><span class="s1">Arrays</span><span class="s2">.</span><span class="s1">toString</span><span class="s2">(</span><span class="s1">words</span><span class="s2">));</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;애너그램 그룹:&quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">group </span><span class="s2">: </span><span class="s1">anagramGroups</span><span class="s2">.</span><span class="s1">values</span><span class="s2">()) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">group</span><span class="s2">.</span><span class="s1">size</span><span class="s2">() &gt; </span><span class="s5">1</span><span class="s2">) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">group</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 문제 6: LRU 캐시 구현 (LinkedHashMap 활용)</span>
+    <span class="s3">// LRU(Least Recently Used) : 가장 최근에 사용되지 않은 캐시 교체</span>
+    <span class="s0">static class </span><span class="s1">LRUCache </span><span class="s2">{</span>
+        <span class="s0">private final int </span><span class="s1">capacity</span><span class="s2">;</span>
+        <span class="s0">private final </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">cache</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">LRUCache</span><span class="s2">(</span><span class="s0">int </span><span class="s1">capacity</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">capacity </span><span class="s2">= </span><span class="s1">capacity</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">cache </span><span class="s2">= </span><span class="s0">new </span><span class="s1">LinkedHashMap</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt;(</span><span class="s1">capacity</span><span class="s2">, </span><span class="s5">0.75f</span><span class="s2">, </span><span class="s0">true</span><span class="s2">) {</span>
+
+				<span class="s0">private static final long </span><span class="s1">serialVersionUID </span><span class="s2">= </span><span class="s5">1L</span><span class="s2">;</span>
+
+				<span class="s1">@Override</span>
+                <span class="s0">protected boolean </span><span class="s1">removeEldestEntry</span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">eldest</span><span class="s2">) {</span>
+                    <span class="s0">return </span><span class="s1">size</span><span class="s2">() &gt; </span><span class="s1">capacity</span><span class="s2">;</span>
+                <span class="s2">}</span>
+            <span class="s2">};</span>
+        <span class="s2">}</span>
+        
+        <span class="s0">public int </span><span class="s1">get</span><span class="s2">(</span><span class="s0">int </span><span class="s1">key</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">cache</span><span class="s2">.</span><span class="s1">getOrDefault</span><span class="s2">(</span><span class="s1">key</span><span class="s2">, -</span><span class="s5">1</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s0">public void </span><span class="s1">put</span><span class="s2">(</span><span class="s0">int </span><span class="s1">key</span><span class="s2">, </span><span class="s0">int </span><span class="s1">value</span><span class="s2">) {</span>
+            <span class="s1">cache</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">key</span><span class="s2">, </span><span class="s1">value</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s0">public void </span><span class="s1">printCache</span><span class="s2">() {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;캐시 상태: &quot; </span><span class="s2">+ </span><span class="s1">cache</span><span class="s2">);</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s0">public static void </span><span class="s1">problem6</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 문제 6: LRU 캐시 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">LRUCache lru </span><span class="s2">= </span><span class="s0">new </span><span class="s1">LRUCache</span><span class="s2">(</span><span class="s5">3</span><span class="s2">);</span>
+        
+        <span class="s1">lru</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s5">1</span><span class="s2">, </span><span class="s5">10</span><span class="s2">);</span>
+        <span class="s1">lru</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s5">2</span><span class="s2">, </span><span class="s5">20</span><span class="s2">);</span>
+        <span class="s1">lru</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s5">3</span><span class="s2">, </span><span class="s5">30</span><span class="s2">);</span>
+        <span class="s1">lru</span><span class="s2">.</span><span class="s1">printCache</span><span class="s2">();</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;get(2): &quot; </span><span class="s2">+ </span><span class="s1">lru</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s5">2</span><span class="s2">));</span>
+        <span class="s1">lru</span><span class="s2">.</span><span class="s1">printCache</span><span class="s2">();</span>
+        
+        <span class="s1">lru</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s5">4</span><span class="s2">, </span><span class="s5">40</span><span class="s2">); </span><span class="s3">// 1이 제거됨</span>
+        <span class="s1">lru</span><span class="s2">.</span><span class="s1">printCache</span><span class="s2">();</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;get(1): &quot; </span><span class="s2">+ </span><span class="s1">lru</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s5">1</span><span class="s2">)); </span><span class="s3">// -1 반환</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 문제 7: 해시테이블을 이용한 Two Sum 문제</span>
+    <span class="s0">public static void </span><span class="s1">problem7</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 문제 7: Two Sum 문제 ===&quot;</span><span class="s2">);</span>
+        <span class="s0">int</span><span class="s2">[] </span><span class="s1">nums </span><span class="s2">= {</span><span class="s5">2</span><span class="s2">, </span><span class="s5">7</span><span class="s2">, </span><span class="s5">11</span><span class="s2">, </span><span class="s5">15</span><span class="s2">};</span>
+        <span class="s0">int </span><span class="s1">target </span><span class="s2">= </span><span class="s5">9</span><span class="s2">;</span>
+        
+        <span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">numMap </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+        
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">nums</span><span class="s2">.</span><span class="s1">length</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+            <span class="s0">int </span><span class="s1">complement </span><span class="s2">= </span><span class="s1">target </span><span class="s2">- </span><span class="s1">nums</span><span class="s2">[</span><span class="s1">i</span><span class="s2">];</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">numMap</span><span class="s2">.</span><span class="s1">containsKey</span><span class="s2">(</span><span class="s1">complement</span><span class="s2">)) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;배열: &quot; </span><span class="s2">+ </span><span class="s1">Arrays</span><span class="s2">.</span><span class="s1">toString</span><span class="s2">(</span><span class="s1">nums</span><span class="s2">));</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;목표값: &quot; </span><span class="s2">+ </span><span class="s1">target</span><span class="s2">);</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;결과: [&quot; </span><span class="s2">+ </span><span class="s1">numMap</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">complement</span><span class="s2">) + </span><span class="s4">&quot;, &quot; </span><span class="s2">+ </span><span class="s1">i </span><span class="s2">+ </span><span class="s4">&quot;]&quot;</span><span class="s2">);</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;값: [&quot; </span><span class="s2">+ </span><span class="s1">complement </span><span class="s2">+ </span><span class="s4">&quot;, &quot; </span><span class="s2">+ </span><span class="s1">nums</span><span class="s2">[</span><span class="s1">i</span><span class="s2">] + </span><span class="s4">&quot;]&quot;</span><span class="s2">);</span>
+                <span class="s0">return</span><span class="s2">;</span>
+            <span class="s2">}</span>
+            <span class="s1">numMap</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">nums</span><span class="s2">[</span><span class="s1">i</span><span class="s2">], </span><span class="s1">i</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;해당하는 두 수를 찾을 수 없습니다.&quot;</span><span class="s2">);</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">// 문제 8: 집합을 이용한 부분 문자열 중복 검사</span>
+    <span class="s0">public static void </span><span class="s1">problem8</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">=== 문제 8: 부분 문자열 중복 검사 ===&quot;</span><span class="s2">);</span>
+        <span class="s1">String s </span><span class="s2">= </span><span class="s4">&quot;abcabcbb&quot;</span><span class="s2">;</span>
+        <span class="s0">int </span><span class="s1">k </span><span class="s2">= </span><span class="s5">3</span><span class="s2">; </span><span class="s3">// 길이 3인 부분 문자열 검사</span>
+        
+        <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">seen </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashSet</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">duplicates </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashSet</span><span class="s2">&lt;&gt;();</span>
+        
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt;= </span><span class="s1">s</span><span class="s2">.</span><span class="s1">length</span><span class="s2">() - </span><span class="s1">k</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+            <span class="s1">String substring </span><span class="s2">= </span><span class="s1">s</span><span class="s2">.</span><span class="s1">substring</span><span class="s2">(</span><span class="s1">i</span><span class="s2">, </span><span class="s1">i </span><span class="s2">+ </span><span class="s1">k</span><span class="s2">);</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">seen</span><span class="s2">.</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">substring</span><span class="s2">)) {</span>
+                <span class="s1">duplicates</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">substring</span><span class="s2">);</span>
+            <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                <span class="s1">seen</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">substring</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;문자열: &quot; </span><span class="s2">+ </span><span class="s1">s</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;길이 &quot; </span><span class="s2">+ </span><span class="s1">k </span><span class="s2">+ </span><span class="s4">&quot;인 부분 문자열들: &quot; </span><span class="s2">+ </span><span class="s1">seen</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;중복된 부분 문자열: &quot; </span><span class="s2">+ </span><span class="s1">duplicates</span><span class="s2">);</span>
+    <span class="s2">}</span>
+    
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;=&quot; </span><span class="s2">.</span><span class="s1">repeat</span><span class="s2">(</span><span class="s5">40</span><span class="s2">));</span>
+        
+        <span class="s1">problem1</span><span class="s2">(); </span><span class="s3">// 중복 제거 및 정렬</span>
+        <span class="s1">problem2</span><span class="s2">(); </span><span class="s3">// 문자 빈도수 계산</span>
+        <span class="s1">problem3</span><span class="s2">(); </span><span class="s3">// 교집합 구하기</span>
+        <span class="s1">problem4</span><span class="s2">(); </span><span class="s3">// 학생 성적 관리</span>
+        <span class="s1">problem5</span><span class="s2">(); </span><span class="s3">// 그룹 애너그램</span>
+        <span class="s1">problem6</span><span class="s2">(); </span><span class="s3">// LRU 캐시</span>
+        <span class="s1">problem7</span><span class="s2">(); </span><span class="s3">// Two Sum</span>
+        <span class="s1">problem8</span><span class="s2">(); </span><span class="s3">// 부분 문자열 중복 검사</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\n</span><span class="s4">모든 문제가 완료되었습니다!&quot;</span><span class="s2">);</span>
+    <span class="s2">}</span>
+<span class="s2">}</span></pre>
+</body>
+</html>

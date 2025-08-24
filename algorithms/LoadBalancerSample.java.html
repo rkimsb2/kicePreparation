@@ -1,0 +1,221 @@
+<html>
+<head>
+<title>LoadBalancerSample.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #7a7e85;}
+.s5 { color: #2aacb8;}
+.s6 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+LoadBalancerSample.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">algorithms</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">ArrayList</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Cloud/On-Premise 환경에서 요구되는 핵심 알고리즘 구현</span>
+ <span class="s3">* </span>
+ <span class="s3">*  로드 밸런싱 알고리즘 (라운드 로빈, 가중치 라운드 로빈)</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">LoadBalancerSample </span><span class="s2">{</span>
+
+	<span class="s4">// ===== 로드 밸런싱 알고리즘 =====</span>
+	
+    <span class="s3">/**</span>
+     <span class="s3">* 서버 정보를 담는 클래스</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">Server </span><span class="s2">{</span>
+        <span class="s0">private </span><span class="s1">String id</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">String ip</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">port</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">weight</span><span class="s2">;</span>
+        <span class="s0">private boolean </span><span class="s1">isHealthy</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">currentConnections</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">Server</span><span class="s2">(</span><span class="s1">String id</span><span class="s2">, </span><span class="s1">String ip</span><span class="s2">, </span><span class="s0">int </span><span class="s1">port</span><span class="s2">, </span><span class="s0">int </span><span class="s1">weight</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">id </span><span class="s2">= </span><span class="s1">id</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">ip </span><span class="s2">= </span><span class="s1">ip</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">port </span><span class="s2">= </span><span class="s1">port</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">weight </span><span class="s2">= </span><span class="s1">weight</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">isHealthy </span><span class="s2">= </span><span class="s0">true</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">currentConnections </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s4">// Getter 메소드들</span>
+        <span class="s0">public </span><span class="s1">String getId</span><span class="s2">() { </span><span class="s0">return </span><span class="s1">id</span><span class="s2">; }</span>
+        <span class="s0">public </span><span class="s1">String getIp</span><span class="s2">() { </span><span class="s0">return </span><span class="s1">ip</span><span class="s2">; }</span>
+        <span class="s0">public int </span><span class="s1">getPort</span><span class="s2">() { </span><span class="s0">return </span><span class="s1">port</span><span class="s2">; }</span>
+        <span class="s0">public int </span><span class="s1">getWeight</span><span class="s2">() { </span><span class="s0">return </span><span class="s1">weight</span><span class="s2">; }</span>
+        <span class="s0">public boolean </span><span class="s1">isHealthy</span><span class="s2">() { </span><span class="s0">return </span><span class="s1">isHealthy</span><span class="s2">; }</span>
+        <span class="s0">public int </span><span class="s1">getCurrentConnections</span><span class="s2">() { </span><span class="s0">return </span><span class="s1">currentConnections</span><span class="s2">; }</span>
+        
+        <span class="s4">// Setter 메소드들</span>
+        <span class="s0">public void </span><span class="s1">setHealthy</span><span class="s2">(</span><span class="s0">boolean </span><span class="s1">healthy</span><span class="s2">) { </span><span class="s0">this</span><span class="s2">.</span><span class="s1">isHealthy </span><span class="s2">= </span><span class="s1">healthy</span><span class="s2">; }</span>
+        <span class="s0">public void </span><span class="s1">incrementConnections</span><span class="s2">() { </span><span class="s0">this</span><span class="s2">.</span><span class="s1">currentConnections</span><span class="s2">++; }</span>
+        <span class="s0">public void </span><span class="s1">decrementConnections</span><span class="s2">() { </span><span class="s0">this</span><span class="s2">.</span><span class="s1">currentConnections</span><span class="s2">--; }</span>
+        
+        <span class="s1">@Override</span>
+        <span class="s0">public </span><span class="s1">String toString</span><span class="s2">() {</span>
+            <span class="s0">return </span><span class="s1">String</span><span class="s2">.</span><span class="s1">format</span><span class="s2">(</span><span class="s6">&quot;Server[%s:%s:%d, weight=%d, healthy=%b, connections=%d]&quot;</span><span class="s2">, </span>
+                               <span class="s1">id</span><span class="s2">, </span><span class="s1">ip</span><span class="s2">, </span><span class="s1">port</span><span class="s2">, </span><span class="s1">weight</span><span class="s2">, </span><span class="s1">isHealthy</span><span class="s2">, </span><span class="s1">currentConnections</span><span class="s2">);</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 로드 밸런서 클래스</span>
+     <span class="s3">* 라운드 로빈과 가중치 라운드 로빈 알고리즘을 구현</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">LoadBalancer </span><span class="s2">{</span>
+        <span class="s0">private </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Server</span><span class="s2">&gt; </span><span class="s1">servers</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">currentIndex</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">currentWeight</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">maxWeight</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">gcd</span><span class="s2">; </span><span class="s4">// 최대공약수</span>
+        
+        <span class="s0">public </span><span class="s1">LoadBalancer</span><span class="s2">() {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">servers </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">currentIndex </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">currentWeight </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 서버를 추가하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">addServer</span><span class="s2">(</span><span class="s1">Server server</span><span class="s2">) {</span>
+            <span class="s1">servers</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">server</span><span class="s2">);</span>
+            <span class="s1">calculateMaxWeightAndGCD</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 최대 가중치와 최대공약수를 계산하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">private void </span><span class="s1">calculateMaxWeightAndGCD</span><span class="s2">() {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">servers</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) </span><span class="s0">return</span><span class="s2">;</span>
+            
+            <span class="s1">maxWeight </span><span class="s2">= </span><span class="s1">servers</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s5">0</span><span class="s2">).</span><span class="s1">getWeight</span><span class="s2">();</span>
+            <span class="s1">gcd </span><span class="s2">= </span><span class="s1">servers</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s5">0</span><span class="s2">).</span><span class="s1">getWeight</span><span class="s2">();</span>
+            
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">1</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">servers</span><span class="s2">.</span><span class="s1">size</span><span class="s2">(); </span><span class="s1">i</span><span class="s2">++) {</span>
+                <span class="s0">int </span><span class="s1">weight </span><span class="s2">= </span><span class="s1">servers</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">i</span><span class="s2">).</span><span class="s1">getWeight</span><span class="s2">();</span>
+                <span class="s1">maxWeight </span><span class="s2">= </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">max</span><span class="s2">(</span><span class="s1">maxWeight</span><span class="s2">, </span><span class="s1">weight</span><span class="s2">);</span>
+                <span class="s1">gcd </span><span class="s2">= </span><span class="s1">calculateGCD</span><span class="s2">(</span><span class="s1">gcd</span><span class="s2">, </span><span class="s1">weight</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 최대공약수를 계산하는 헬퍼 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">private int </span><span class="s1">calculateGCD</span><span class="s2">(</span><span class="s0">int </span><span class="s1">a</span><span class="s2">, </span><span class="s0">int </span><span class="s1">b</span><span class="s2">) {</span>
+            <span class="s0">while </span><span class="s2">(</span><span class="s1">b </span><span class="s2">!= </span><span class="s5">0</span><span class="s2">) {</span>
+                <span class="s0">int </span><span class="s1">temp </span><span class="s2">= </span><span class="s1">b</span><span class="s2">;</span>
+                <span class="s1">b </span><span class="s2">= </span><span class="s1">a </span><span class="s2">% </span><span class="s1">b</span><span class="s2">;</span>
+                <span class="s1">a </span><span class="s2">= </span><span class="s1">temp</span><span class="s2">;</span>
+            <span class="s2">}</span>
+            <span class="s0">return </span><span class="s1">a</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 라운드 로빈 알고리즘으로 서버를 선택</span>
+         <span class="s3">*/</span>
+        <span class="s0">public </span><span class="s1">Server selectServerRoundRobin</span><span class="s2">() {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">servers</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) </span><span class="s0">return null</span><span class="s2">;</span>
+            
+            <span class="s0">int </span><span class="s1">attempts </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+            <span class="s0">while </span><span class="s2">(</span><span class="s1">attempts </span><span class="s2">&lt; </span><span class="s1">servers</span><span class="s2">.</span><span class="s1">size</span><span class="s2">()) {</span>
+                <span class="s1">Server server </span><span class="s2">= </span><span class="s1">servers</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">currentIndex</span><span class="s2">);</span>
+                <span class="s1">currentIndex </span><span class="s2">= (</span><span class="s1">currentIndex </span><span class="s2">+ </span><span class="s5">1</span><span class="s2">) % </span><span class="s1">servers</span><span class="s2">.</span><span class="s1">size</span><span class="s2">();</span>
+                
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">server</span><span class="s2">.</span><span class="s1">isHealthy</span><span class="s2">()) {</span>
+                    <span class="s0">return </span><span class="s1">server</span><span class="s2">;</span>
+                <span class="s2">}</span>
+                <span class="s1">attempts</span><span class="s2">++;</span>
+            <span class="s2">}</span>
+            <span class="s0">return null</span><span class="s2">; </span><span class="s4">// 모든 서버가 비정상</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 가중치 라운드 로빈 알고리즘으로 서버를 선택</span>
+         <span class="s3">*/</span>
+        <span class="s0">public </span><span class="s1">Server selectServerWeightedRoundRobin</span><span class="s2">() {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">servers</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) </span><span class="s0">return null</span><span class="s2">;</span>
+            
+            <span class="s0">while </span><span class="s2">(</span><span class="s0">true</span><span class="s2">) {</span>
+                <span class="s1">currentIndex </span><span class="s2">= (</span><span class="s1">currentIndex </span><span class="s2">+ </span><span class="s5">1</span><span class="s2">) % </span><span class="s1">servers</span><span class="s2">.</span><span class="s1">size</span><span class="s2">();</span>
+                
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">currentIndex </span><span class="s2">== </span><span class="s5">0</span><span class="s2">) {</span>
+                    <span class="s1">currentWeight </span><span class="s2">= </span><span class="s1">currentWeight </span><span class="s2">- </span><span class="s1">gcd</span><span class="s2">;</span>
+                    <span class="s0">if </span><span class="s2">(</span><span class="s1">currentWeight </span><span class="s2">&lt;= </span><span class="s5">0</span><span class="s2">) {</span>
+                        <span class="s1">currentWeight </span><span class="s2">= </span><span class="s1">maxWeight</span><span class="s2">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+                
+                <span class="s1">Server server </span><span class="s2">= </span><span class="s1">servers</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">currentIndex</span><span class="s2">);</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">server</span><span class="s2">.</span><span class="s1">getWeight</span><span class="s2">() &gt;= </span><span class="s1">currentWeight </span><span class="s2">&amp;&amp; </span><span class="s1">server</span><span class="s2">.</span><span class="s1">isHealthy</span><span class="s2">()) {</span>
+                    <span class="s0">return </span><span class="s1">server</span><span class="s2">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 로드 밸런서 테스트</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">testLoadBalancer</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;========== Load Balancer Test ==========&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">LoadBalancer lb </span><span class="s2">= </span><span class="s0">new </span><span class="s1">LoadBalancer</span><span class="s2">();</span>
+        
+        <span class="s4">// 서버 추가</span>
+        <span class="s1">lb</span><span class="s2">.</span><span class="s1">addServer</span><span class="s2">(</span><span class="s0">new </span><span class="s1">Server</span><span class="s2">(</span><span class="s6">&quot;server1&quot;</span><span class="s2">, </span><span class="s6">&quot;192.168.1.10&quot;</span><span class="s2">, </span><span class="s5">8080</span><span class="s2">, </span><span class="s5">1</span><span class="s2">));</span>
+        <span class="s1">lb</span><span class="s2">.</span><span class="s1">addServer</span><span class="s2">(</span><span class="s0">new </span><span class="s1">Server</span><span class="s2">(</span><span class="s6">&quot;server2&quot;</span><span class="s2">, </span><span class="s6">&quot;192.168.1.11&quot;</span><span class="s2">, </span><span class="s5">8080</span><span class="s2">, </span><span class="s5">2</span><span class="s2">));</span>
+        <span class="s1">lb</span><span class="s2">.</span><span class="s1">addServer</span><span class="s2">(</span><span class="s0">new </span><span class="s1">Server</span><span class="s2">(</span><span class="s6">&quot;server3&quot;</span><span class="s2">, </span><span class="s6">&quot;192.168.1.12&quot;</span><span class="s2">, </span><span class="s5">8080</span><span class="s2">, </span><span class="s5">3</span><span class="s2">));</span>
+        
+        <span class="s4">// 라운드 로빈 테스트</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;--- Round Robin Test ---&quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s5">6</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+            <span class="s1">Server server </span><span class="s2">= </span><span class="s1">lb</span><span class="s2">.</span><span class="s1">selectServerRoundRobin</span><span class="s2">();</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Selected: &quot; </span><span class="s2">+ </span><span class="s1">server</span><span class="s2">.</span><span class="s1">getId</span><span class="s2">());</span>
+        <span class="s2">}</span>
+        
+        <span class="s4">// 가중치 라운드 로빈 테스트</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;--- Weighted Round Robin Test ---&quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s5">12</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+            <span class="s1">Server server </span><span class="s2">= </span><span class="s1">lb</span><span class="s2">.</span><span class="s1">selectServerWeightedRoundRobin</span><span class="s2">();</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Selected: &quot; </span><span class="s2">+ </span><span class="s1">server</span><span class="s2">.</span><span class="s1">getId</span><span class="s2">());</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 메인 메소드 - 테스트 실행</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;로드 밸런서 테스트 시작&quot;</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;=&quot;</span><span class="s2">.</span><span class="s1">repeat</span><span class="s2">(</span><span class="s5">40</span><span class="s2">));</span>
+        
+        <span class="s0">try </span><span class="s2">{</span>
+            <span class="s4">// 로드 밸런서 테스트</span>
+            <span class="s1">testLoadBalancer</span><span class="s2">();</span>
+        <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">err</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;테스트 중 오류 발생: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;로드 밸런서 테스트 완료&quot;</span><span class="s2">);</span>
+    <span class="s2">}    </span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

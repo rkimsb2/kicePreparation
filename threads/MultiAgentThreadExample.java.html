@@ -1,0 +1,73 @@
+<html>
+<head>
+<title>MultiAgentThreadExample.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #6aab73;}
+.s5 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MultiAgentThreadExample.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">threads</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">ArrayList</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Map</span><span class="s2">;</span>
+
+<span class="s0">public class </span><span class="s1">MultiAgentThreadExample </span><span class="s2">{</span>
+	
+	<span class="s0">static class </span><span class="s1">AgentWorker </span><span class="s0">implements </span><span class="s1">Runnable </span><span class="s2">{</span>
+	    <span class="s0">private final </span><span class="s1">String agentName</span><span class="s2">;</span>
+	    <span class="s0">private final int </span><span class="s1">taskCount</span><span class="s2">;</span>
+	    <span class="s0">private final int </span><span class="s1">input</span><span class="s2">;</span>
+
+	    <span class="s0">public </span><span class="s1">AgentWorker</span><span class="s2">(</span><span class="s1">String agentName</span><span class="s2">, </span><span class="s0">int </span><span class="s1">taskCount</span><span class="s2">, </span><span class="s0">int </span><span class="s1">input</span><span class="s2">) {</span>
+	        <span class="s0">this</span><span class="s2">.</span><span class="s1">agentName </span><span class="s2">= </span><span class="s1">agentName</span><span class="s2">;</span>
+	        <span class="s0">this</span><span class="s2">.</span><span class="s1">taskCount </span><span class="s2">= </span><span class="s1">taskCount</span><span class="s2">;</span>
+	        <span class="s0">this</span><span class="s2">.</span><span class="s1">input </span><span class="s2">= </span><span class="s1">input</span><span class="s2">;</span>
+	    <span class="s2">}</span>
+
+	    <span class="s1">@Override</span>
+	    <span class="s0">public void </span><span class="s1">run</span><span class="s2">() {</span>
+	        <span class="s0">int </span><span class="s1">result </span><span class="s2">= </span><span class="s3">0</span><span class="s2">;</span>
+	        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s3">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">taskCount</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+	            <span class="s1">result </span><span class="s2">+= (</span><span class="s1">input </span><span class="s2">+ </span><span class="s1">i</span><span class="s2">);</span>
+	        <span class="s2">}</span>
+	        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">agentName </span><span class="s2">+ </span><span class="s4">&quot; 작업 완료: &quot; </span><span class="s2">+ </span><span class="s1">result</span><span class="s2">);</span>
+	    <span class="s2">}</span>
+	<span class="s2">}</span>
+	
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) {</span>
+        <span class="s5">// 각 Agent별 할당량</span>
+        <span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">policy </span><span class="s2">= </span><span class="s1">Map</span><span class="s2">.</span><span class="s1">of</span><span class="s2">(</span><span class="s4">&quot;A&quot;</span><span class="s2">, </span><span class="s3">50</span><span class="s2">, </span><span class="s4">&quot;B&quot;</span><span class="s2">, </span><span class="s3">30</span><span class="s2">, </span><span class="s4">&quot;C&quot;</span><span class="s2">, </span><span class="s3">20</span><span class="s2">);</span>
+        <span class="s0">int </span><span class="s1">input </span><span class="s2">= </span><span class="s3">100</span><span class="s2">;</span>
+
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Thread</span><span class="s2">&gt; </span><span class="s1">threads </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">entry </span><span class="s2">: </span><span class="s1">policy</span><span class="s2">.</span><span class="s1">entrySet</span><span class="s2">()) {</span>
+            <span class="s1">Thread t </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Thread</span><span class="s2">(</span><span class="s0">new </span><span class="s1">AgentWorker</span><span class="s2">(</span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getKey</span><span class="s2">(), </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">(), </span><span class="s1">input</span><span class="s2">));</span>
+            <span class="s1">threads</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">t</span><span class="s2">);</span>
+            <span class="s1">t</span><span class="s2">.</span><span class="s1">start</span><span class="s2">();</span>
+        <span class="s2">}</span>
+
+        <span class="s5">// 모든 스레드가 종료될 때까지 대기</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">Thread t </span><span class="s2">: </span><span class="s1">threads</span><span class="s2">) {</span>
+            <span class="s0">try </span><span class="s2">{</span>
+                <span class="s1">t</span><span class="s2">.</span><span class="s1">join</span><span class="s2">();</span>
+            <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">InterruptedException e</span><span class="s2">) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;스레드 대기 중 인터럽트 발생&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;모든 Agent 작업 완료&quot;</span><span class="s2">);</span>
+    <span class="s2">}</span>
+<span class="s2">}</span></pre>
+</body>
+</html>

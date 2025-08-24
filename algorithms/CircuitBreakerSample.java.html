@@ -1,0 +1,306 @@
+<html>
+<head>
+<title>CircuitBreakerSample.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #7a7e85;}
+.s5 { color: #2aacb8;}
+.s6 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CircuitBreakerSample.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">algorithms</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Map</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Timer</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">TimerTask</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">concurrent</span><span class="s2">.</span><span class="s1">Callable</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">concurrent</span><span class="s2">.</span><span class="s1">ConcurrentHashMap</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Cloud/On-Premise 환경에서 요구되는 핵심 알고리즘 구현</span>
+ <span class="s3">* </span>
+ <span class="s3">* 장애 감지 알고리즘  알고리즘 (Heartbeat with Circuit Breaker)</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">CircuitBreakerSample </span><span class="s2">{</span>
+
+
+    <span class="s4">// ===== 장애 감지 알고리즘 (Heartbeat with Circuit Breaker) =====</span>
+    
+	  
+    <span class="s3">/**</span>
+     <span class="s3">* 서킷 브레이커 패턴을 구현하는 클래스</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">CircuitBreaker </span><span class="s2">{</span>
+        <span class="s0">private enum </span><span class="s1">State </span><span class="s2">{</span>
+            <span class="s1">CLOSED</span><span class="s2">, </span><span class="s1">OPEN</span><span class="s2">, </span><span class="s1">HALF_OPEN</span>
+        <span class="s2">}</span>
+        
+        <span class="s0">private </span><span class="s1">State state</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">failureCount</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">failureThreshold</span><span class="s2">;</span>
+        <span class="s0">private long </span><span class="s1">timeout</span><span class="s2">;</span>
+        <span class="s0">private long </span><span class="s1">lastFailureTime</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">successCount</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">halfOpenMaxCalls</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">CircuitBreaker</span><span class="s2">(</span><span class="s0">int </span><span class="s1">failureThreshold</span><span class="s2">, </span><span class="s0">long </span><span class="s1">timeout</span><span class="s2">, </span><span class="s0">int </span><span class="s1">halfOpenMaxCalls</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">state </span><span class="s2">= </span><span class="s1">State</span><span class="s2">.</span><span class="s1">CLOSED</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">failureCount </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">failureThreshold </span><span class="s2">= </span><span class="s1">failureThreshold</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">timeout </span><span class="s2">= </span><span class="s1">timeout</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">lastFailureTime </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">successCount </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">halfOpenMaxCalls </span><span class="s2">= </span><span class="s1">halfOpenMaxCalls</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 서비스 호출을 실행하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public boolean </span><span class="s1">call</span><span class="s2">(</span><span class="s1">Callable</span><span class="s2">&lt;</span><span class="s1">Boolean</span><span class="s2">&gt; </span><span class="s1">service</span><span class="s2">) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">state </span><span class="s2">== </span><span class="s1">State</span><span class="s2">.</span><span class="s1">OPEN</span><span class="s2">) {</span>
+                <span class="s4">// 타임아웃 시간이 지나면 HALF_OPEN으로 전환</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">currentTimeMillis</span><span class="s2">() - </span><span class="s1">lastFailureTime </span><span class="s2">&gt; </span><span class="s1">timeout</span><span class="s2">) {</span>
+                    <span class="s1">state </span><span class="s2">= </span><span class="s1">State</span><span class="s2">.</span><span class="s1">HALF_OPEN</span><span class="s2">;</span>
+                    <span class="s1">successCount </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+                    <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Circuit Breaker: OPEN -&gt; HALF_OPEN&quot;</span><span class="s2">);</span>
+                <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                    <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Circuit Breaker: Call blocked (OPEN state)&quot;</span><span class="s2">);</span>
+                    <span class="s0">return false</span><span class="s2">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            
+            <span class="s0">try </span><span class="s2">{</span>
+                <span class="s0">boolean </span><span class="s1">result </span><span class="s2">= </span><span class="s1">service</span><span class="s2">.</span><span class="s1">call</span><span class="s2">();</span>
+                <span class="s1">onSuccess</span><span class="s2">();</span>
+                <span class="s0">return </span><span class="s1">result</span><span class="s2">;</span>
+            <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">) {</span>
+                <span class="s1">onFailure</span><span class="s2">();</span>
+                <span class="s0">return false</span><span class="s2">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 성공 시 호출되는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">private void </span><span class="s1">onSuccess</span><span class="s2">() {</span>
+            <span class="s1">failureCount </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+            
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">state </span><span class="s2">== </span><span class="s1">State</span><span class="s2">.</span><span class="s1">HALF_OPEN</span><span class="s2">) {</span>
+                <span class="s1">successCount</span><span class="s2">++;</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">successCount </span><span class="s2">&gt;= </span><span class="s1">halfOpenMaxCalls</span><span class="s2">) {</span>
+                    <span class="s1">state </span><span class="s2">= </span><span class="s1">State</span><span class="s2">.</span><span class="s1">CLOSED</span><span class="s2">;</span>
+                    <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Circuit Breaker: HALF_OPEN -&gt; CLOSED&quot;</span><span class="s2">);</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 실패 시 호출되는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">private void </span><span class="s1">onFailure</span><span class="s2">() {</span>
+            <span class="s1">failureCount</span><span class="s2">++;</span>
+            <span class="s1">lastFailureTime </span><span class="s2">= </span><span class="s1">System</span><span class="s2">.</span><span class="s1">currentTimeMillis</span><span class="s2">();</span>
+            
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">failureCount </span><span class="s2">&gt;= </span><span class="s1">failureThreshold</span><span class="s2">) {</span>
+                <span class="s1">state </span><span class="s2">= </span><span class="s1">State</span><span class="s2">.</span><span class="s1">OPEN</span><span class="s2">;</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Circuit Breaker: &quot; </span><span class="s2">+ (</span><span class="s1">state </span><span class="s2">== </span><span class="s1">State</span><span class="s2">.</span><span class="s1">HALF_OPEN </span><span class="s2">? </span><span class="s6">&quot;HALF_OPEN&quot; </span><span class="s2">: </span><span class="s6">&quot;CLOSED&quot;</span><span class="s2">) + </span><span class="s6">&quot; -&gt; OPEN&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s0">public </span><span class="s1">State getState</span><span class="s2">() {</span>
+            <span class="s0">return </span><span class="s1">state</span><span class="s2">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 하트비트 모니터링 클래스</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">HeartbeatMonitor </span><span class="s2">{</span>
+        <span class="s0">private </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Long</span><span class="s2">&gt; </span><span class="s1">lastHeartbeat</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Boolean</span><span class="s2">&gt; </span><span class="s1">nodeStatus</span><span class="s2">;</span>
+        <span class="s0">private long </span><span class="s1">heartbeatInterval</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">Timer timer</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">HeartbeatMonitor</span><span class="s2">(</span><span class="s0">long </span><span class="s1">heartbeatInterval</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">lastHeartbeat </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ConcurrentHashMap</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">nodeStatus </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ConcurrentHashMap</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">heartbeatInterval </span><span class="s2">= </span><span class="s1">heartbeatInterval</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">timer </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Timer</span><span class="s2">(</span><span class="s0">true</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 노드를 모니터링에 추가하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">addNode</span><span class="s2">(</span><span class="s1">String nodeId</span><span class="s2">) {</span>
+            <span class="s1">lastHeartbeat</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">nodeId</span><span class="s2">, </span><span class="s1">System</span><span class="s2">.</span><span class="s1">currentTimeMillis</span><span class="s2">());</span>
+            <span class="s1">nodeStatus</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">nodeId</span><span class="s2">, </span><span class="s0">true</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 하트비트를 업데이트하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">updateHeartbeat</span><span class="s2">(</span><span class="s1">String nodeId</span><span class="s2">) {</span>
+            <span class="s1">lastHeartbeat</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">nodeId</span><span class="s2">, </span><span class="s1">System</span><span class="s2">.</span><span class="s1">currentTimeMillis</span><span class="s2">());</span>
+            <span class="s1">nodeStatus</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">nodeId</span><span class="s2">, </span><span class="s0">true</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 주기적으로 하트비트를 체크하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">startMonitoring</span><span class="s2">() {</span>
+            <span class="s1">timer</span><span class="s2">.</span><span class="s1">scheduleAtFixedRate</span><span class="s2">(</span><span class="s0">new </span><span class="s1">TimerTask</span><span class="s2">() {</span>
+                <span class="s1">@Override</span>
+                <span class="s0">public void </span><span class="s1">run</span><span class="s2">() {</span>
+                    <span class="s1">checkHeartbeats</span><span class="s2">();</span>
+                <span class="s2">}</span>
+            <span class="s2">}, </span><span class="s1">heartbeatInterval</span><span class="s2">, </span><span class="s1">heartbeatInterval</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 하트비트를 체크하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">private void </span><span class="s1">checkHeartbeats</span><span class="s2">() {</span>
+            <span class="s0">long </span><span class="s1">currentTime </span><span class="s2">= </span><span class="s1">System</span><span class="s2">.</span><span class="s1">currentTimeMillis</span><span class="s2">();</span>
+            
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Long</span><span class="s2">&gt; </span><span class="s1">entry </span><span class="s2">: </span><span class="s1">lastHeartbeat</span><span class="s2">.</span><span class="s1">entrySet</span><span class="s2">()) {</span>
+                <span class="s1">String nodeId </span><span class="s2">= </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getKey</span><span class="s2">();</span>
+                <span class="s0">long </span><span class="s1">lastTime </span><span class="s2">= </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">();</span>
+                
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">currentTime </span><span class="s2">- </span><span class="s1">lastTime </span><span class="s2">&gt; </span><span class="s1">heartbeatInterval </span><span class="s2">* </span><span class="s5">2</span><span class="s2">) {</span>
+                    <span class="s0">if </span><span class="s2">(</span><span class="s1">nodeStatus</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">nodeId</span><span class="s2">)) {</span>
+                        <span class="s1">nodeStatus</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">nodeId</span><span class="s2">, </span><span class="s0">false</span><span class="s2">);</span>
+                        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Node &quot; </span><span class="s2">+ </span><span class="s1">nodeId </span><span class="s2">+ </span><span class="s6">&quot; is DOWN&quot;</span><span class="s2">);</span>
+                    <span class="s2">}</span>
+                <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                    <span class="s0">if </span><span class="s2">(!</span><span class="s1">nodeStatus</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">nodeId</span><span class="s2">)) {</span>
+                        <span class="s1">nodeStatus</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">nodeId</span><span class="s2">, </span><span class="s0">true</span><span class="s2">);</span>
+                        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Node &quot; </span><span class="s2">+ </span><span class="s1">nodeId </span><span class="s2">+ </span><span class="s6">&quot; is UP&quot;</span><span class="s2">);</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s0">public boolean </span><span class="s1">isNodeHealthy</span><span class="s2">(</span><span class="s1">String nodeId</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">nodeStatus</span><span class="s2">.</span><span class="s1">getOrDefault</span><span class="s2">(</span><span class="s1">nodeId</span><span class="s2">, </span><span class="s0">false</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s0">public void </span><span class="s1">stopMonitoring</span><span class="s2">() {</span>
+            <span class="s1">timer</span><span class="s2">.</span><span class="s1">cancel</span><span class="s2">();</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 서킷 브레이커 테스트</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">testCircuitBreaker</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;========== Circuit Breaker Test ==========&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">CircuitBreaker cb </span><span class="s2">= </span><span class="s0">new </span><span class="s1">CircuitBreaker</span><span class="s2">(</span><span class="s5">3</span><span class="s2">, </span><span class="s5">5000</span><span class="s2">, </span><span class="s5">2</span><span class="s2">);</span>
+        
+        <span class="s4">// 실패하는 서비스 시뮬레이션</span>
+        <span class="s1">Callable</span><span class="s2">&lt;</span><span class="s1">Boolean</span><span class="s2">&gt; </span><span class="s1">failingService </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Callable</span><span class="s2">&lt;</span><span class="s1">Boolean</span><span class="s2">&gt;() {</span>
+            <span class="s0">private int </span><span class="s1">callCount </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+            
+            <span class="s1">@Override</span>
+            <span class="s0">public </span><span class="s1">Boolean call</span><span class="s2">() </span><span class="s0">throws </span><span class="s1">Exception </span><span class="s2">{</span>
+                <span class="s1">callCount</span><span class="s2">++;</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">callCount </span><span class="s2">&lt;= </span><span class="s5">4</span><span class="s2">) {</span>
+                    <span class="s0">throw new </span><span class="s1">RuntimeException</span><span class="s2">(</span><span class="s6">&quot;Service failure&quot;</span><span class="s2">);</span>
+                <span class="s2">}</span>
+                <span class="s0">return true</span><span class="s2">; </span><span class="s4">// 5번째 호출부터는 성공</span>
+            <span class="s2">}</span>
+        <span class="s2">};</span>
+        
+        <span class="s4">// 서킷 브레이커 테스트</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s5">10</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Call &quot; </span><span class="s2">+ (</span><span class="s1">i </span><span class="s2">+ </span><span class="s5">1</span><span class="s2">) + </span><span class="s6">&quot;: &quot; </span><span class="s2">+ </span><span class="s1">cb</span><span class="s2">.</span><span class="s1">call</span><span class="s2">(</span><span class="s1">failingService</span><span class="s2">) + </span><span class="s6">&quot; (State: &quot; </span><span class="s2">+ </span><span class="s1">cb</span><span class="s2">.</span><span class="s1">getState</span><span class="s2">() + </span><span class="s6">&quot;)&quot;</span><span class="s2">);</span>
+            <span class="s0">try </span><span class="s2">{</span>
+                <span class="s1">Thread</span><span class="s2">.</span><span class="s1">sleep</span><span class="s2">(</span><span class="s5">1000</span><span class="s2">);</span>
+            <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">InterruptedException e</span><span class="s2">) {</span>
+                <span class="s1">Thread</span><span class="s2">.</span><span class="s1">currentThread</span><span class="s2">().</span><span class="s1">interrupt</span><span class="s2">();</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 하트비트 모니터링 테스트</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">testHeartbeatMonitoring</span><span class="s2">() </span><span class="s0">throws </span><span class="s1">InterruptedException </span><span class="s2">{</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;========== Heartbeat Monitoring Test ==========&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">HeartbeatMonitor monitor </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HeartbeatMonitor</span><span class="s2">(</span><span class="s5">2000</span><span class="s2">); </span><span class="s4">// 2초 간격</span>
+        
+        <span class="s4">// 노드 추가</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">addNode</span><span class="s2">(</span><span class="s6">&quot;node1&quot;</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">addNode</span><span class="s2">(</span><span class="s6">&quot;node2&quot;</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">addNode</span><span class="s2">(</span><span class="s6">&quot;node3&quot;</span><span class="s2">);</span>
+        
+        <span class="s4">// 모니터링 시작</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">startMonitoring</span><span class="s2">();</span>
+        
+        <span class="s4">// 처음에는 모든 노드가 정상</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Initial status:&quot;</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Node1 healthy: &quot; </span><span class="s2">+ </span><span class="s1">monitor</span><span class="s2">.</span><span class="s1">isNodeHealthy</span><span class="s2">(</span><span class="s6">&quot;node1&quot;</span><span class="s2">));</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Node2 healthy: &quot; </span><span class="s2">+ </span><span class="s1">monitor</span><span class="s2">.</span><span class="s1">isNodeHealthy</span><span class="s2">(</span><span class="s6">&quot;node2&quot;</span><span class="s2">));</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Node3 healthy: &quot; </span><span class="s2">+ </span><span class="s1">monitor</span><span class="s2">.</span><span class="s1">isNodeHealthy</span><span class="s2">(</span><span class="s6">&quot;node3&quot;</span><span class="s2">));</span>
+        
+        <span class="s4">// 3초 후 node1과 node2의 하트비트 업데이트</span>
+        <span class="s1">Thread</span><span class="s2">.</span><span class="s1">sleep</span><span class="s2">(</span><span class="s5">3000</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateHeartbeat</span><span class="s2">(</span><span class="s6">&quot;node1&quot;</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateHeartbeat</span><span class="s2">(</span><span class="s6">&quot;node2&quot;</span><span class="s2">);</span>
+        
+        <span class="s4">// 3초 더 대기 (node3는 하트비트 업데이트 없음)</span>
+        <span class="s1">Thread</span><span class="s2">.</span><span class="s1">sleep</span><span class="s2">(</span><span class="s5">3000</span><span class="s2">);</span>
+        
+        <span class="s4">// 다시 node1만 하트비트 업데이트</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateHeartbeat</span><span class="s2">(</span><span class="s6">&quot;node1&quot;</span><span class="s2">);</span>
+        
+        <span class="s4">// 5초 더 대기</span>
+        <span class="s1">Thread</span><span class="s2">.</span><span class="s1">sleep</span><span class="s2">(</span><span class="s5">5000</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Final status:&quot;</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Node1 healthy: &quot; </span><span class="s2">+ </span><span class="s1">monitor</span><span class="s2">.</span><span class="s1">isNodeHealthy</span><span class="s2">(</span><span class="s6">&quot;node1&quot;</span><span class="s2">));</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Node2 healthy: &quot; </span><span class="s2">+ </span><span class="s1">monitor</span><span class="s2">.</span><span class="s1">isNodeHealthy</span><span class="s2">(</span><span class="s6">&quot;node2&quot;</span><span class="s2">));</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Node3 healthy: &quot; </span><span class="s2">+ </span><span class="s1">monitor</span><span class="s2">.</span><span class="s1">isNodeHealthy</span><span class="s2">(</span><span class="s6">&quot;node3&quot;</span><span class="s2">));</span>
+        
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">stopMonitoring</span><span class="s2">();</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+    <span class="s2">}        </span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 메인 메소드 - 테스트 실행</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;서킷 브레이커 &amp; 하트비트 모니터링 테스트 테스트 시작&quot;</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;=&quot;</span><span class="s2">.</span><span class="s1">repeat</span><span class="s2">(</span><span class="s5">40</span><span class="s2">));</span>
+        
+        <span class="s0">try </span><span class="s2">{</span>
+            
+            <span class="s4">// 서킷 브레이커 테스트</span>
+            <span class="s1">testCircuitBreaker</span><span class="s2">();   </span>
+            <span class="s4">// 하트비트 모니터링 테스트</span>
+            <span class="s1">testHeartbeatMonitoring</span><span class="s2">();            </span>
+        <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">err</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;테스트 중 오류 발생: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;서킷 브레이커 &amp; 하트비트 모니터링 테스트 테스트 완료&quot;</span><span class="s2">);</span>
+    <span class="s2">}    </span>
+    
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

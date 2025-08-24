@@ -1,0 +1,215 @@
+<html>
+<head>
+<title>MessageQueueSample.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #7a7e85;}
+.s5 { color: #2aacb8;}
+.s6 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MessageQueueSample.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">algorithms</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">LinkedList</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Queue</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Cloud/On-Premise 환경에서 요구되는 핵심 알고리즘 구현</span>
+ <span class="s3">* </span>
+ <span class="s3">* 메시지 큐 알고리즘 (Producer-Consumer Pattern)</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">MessageQueueSample </span><span class="s2">{</span>
+
+    <span class="s4">// ===== 메시지 큐 알고리즘 =====</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 간단한 메시지 큐 구현</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">MessageQueue</span><span class="s2">&lt;</span><span class="s1">T</span><span class="s2">&gt; {</span>
+        <span class="s0">private </span><span class="s1">Queue</span><span class="s2">&lt;</span><span class="s1">T</span><span class="s2">&gt; </span><span class="s1">queue</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">maxSize</span><span class="s2">;</span>
+        <span class="s0">private final </span><span class="s1">Object lock </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Object</span><span class="s2">();</span>
+        
+        <span class="s0">public </span><span class="s1">MessageQueue</span><span class="s2">(</span><span class="s0">int </span><span class="s1">maxSize</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">queue </span><span class="s2">= </span><span class="s0">new </span><span class="s1">LinkedList</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">maxSize </span><span class="s2">= </span><span class="s1">maxSize</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 메시지를 큐에 추가하는 메소드 (Producer)</span>
+         <span class="s3">*/</span>
+        <span class="s0">public boolean </span><span class="s1">produce</span><span class="s2">(</span><span class="s1">T message</span><span class="s2">) {</span>
+            <span class="s0">synchronized </span><span class="s2">(</span><span class="s1">lock</span><span class="s2">) {</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">queue</span><span class="s2">.</span><span class="s1">size</span><span class="s2">() &gt;= </span><span class="s1">maxSize</span><span class="s2">) {</span>
+                    <span class="s0">return false</span><span class="s2">; </span><span class="s4">// 큐가 가득 참</span>
+                <span class="s2">}</span>
+                <span class="s1">queue</span><span class="s2">.</span><span class="s1">offer</span><span class="s2">(</span><span class="s1">message</span><span class="s2">);</span>
+                <span class="s1">lock</span><span class="s2">.</span><span class="s1">notifyAll</span><span class="s2">(); </span><span class="s4">// 대기 중인 컨슈머에게 알림</span>
+                <span class="s0">return true</span><span class="s2">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 메시지를 큐에서 가져오는 메소드 (Consumer)</span>
+         <span class="s3">*/</span>
+        <span class="s0">public </span><span class="s1">T consume</span><span class="s2">() </span><span class="s0">throws </span><span class="s1">InterruptedException </span><span class="s2">{</span>
+            <span class="s0">synchronized </span><span class="s2">(</span><span class="s1">lock</span><span class="s2">) {</span>
+                <span class="s0">while </span><span class="s2">(</span><span class="s1">queue</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+                    <span class="s1">lock</span><span class="s2">.</span><span class="s1">wait</span><span class="s2">(); </span><span class="s4">// 메시지가 올 때까지 대기</span>
+                <span class="s2">}</span>
+                <span class="s0">return </span><span class="s1">queue</span><span class="s2">.</span><span class="s1">poll</span><span class="s2">();</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 큐의 현재 크기를 반환하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public int </span><span class="s1">size</span><span class="s2">() {</span>
+            <span class="s0">synchronized </span><span class="s2">(</span><span class="s1">lock</span><span class="s2">) {</span>
+                <span class="s0">return </span><span class="s1">queue</span><span class="s2">.</span><span class="s1">size</span><span class="s2">();</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 메시지 프로듀서 클래스</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">MessageProducer </span><span class="s0">implements </span><span class="s1">Runnable </span><span class="s2">{</span>
+        <span class="s0">private </span><span class="s1">MessageQueue</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">queue</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">String producerId</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">messageCount</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">MessageProducer</span><span class="s2">(</span><span class="s1">MessageQueue</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">queue</span><span class="s2">, </span><span class="s1">String producerId</span><span class="s2">, </span><span class="s0">int </span><span class="s1">messageCount</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">queue </span><span class="s2">= </span><span class="s1">queue</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">producerId </span><span class="s2">= </span><span class="s1">producerId</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">messageCount </span><span class="s2">= </span><span class="s1">messageCount</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">@Override</span>
+        <span class="s0">public void </span><span class="s1">run</span><span class="s2">() {</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">messageCount</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+                <span class="s1">String message </span><span class="s2">= </span><span class="s1">producerId </span><span class="s2">+ </span><span class="s6">&quot;_message_&quot; </span><span class="s2">+ </span><span class="s1">i</span><span class="s2">;</span>
+                <span class="s0">boolean </span><span class="s1">success </span><span class="s2">= </span><span class="s1">queue</span><span class="s2">.</span><span class="s1">produce</span><span class="s2">(</span><span class="s1">message</span><span class="s2">);</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">success</span><span class="s2">) {</span>
+                    <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">producerId </span><span class="s2">+ </span><span class="s6">&quot; produced: &quot; </span><span class="s2">+ </span><span class="s1">message</span><span class="s2">);</span>
+                <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                    <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">producerId </span><span class="s2">+ </span><span class="s6">&quot; failed to produce: &quot; </span><span class="s2">+ </span><span class="s1">message </span><span class="s2">+ </span><span class="s6">&quot; (queue full)&quot;</span><span class="s2">);</span>
+                <span class="s2">}</span>
+                
+                <span class="s0">try </span><span class="s2">{</span>
+                    <span class="s1">Thread</span><span class="s2">.</span><span class="s1">sleep</span><span class="s2">(</span><span class="s5">100</span><span class="s2">); </span><span class="s4">// 100ms 간격으로 메시지 생성</span>
+                <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">InterruptedException e</span><span class="s2">) {</span>
+                    <span class="s1">Thread</span><span class="s2">.</span><span class="s1">currentThread</span><span class="s2">().</span><span class="s1">interrupt</span><span class="s2">();</span>
+                    <span class="s0">break</span><span class="s2">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 메시지 컨슈머 클래스</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">MessageConsumer </span><span class="s0">implements </span><span class="s1">Runnable </span><span class="s2">{</span>
+        <span class="s0">private </span><span class="s1">MessageQueue</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">queue</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">String consumerId</span><span class="s2">;</span>
+        <span class="s0">private boolean </span><span class="s1">running</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">MessageConsumer</span><span class="s2">(</span><span class="s1">MessageQueue</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">queue</span><span class="s2">, </span><span class="s1">String consumerId</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">queue </span><span class="s2">= </span><span class="s1">queue</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">consumerId </span><span class="s2">= </span><span class="s1">consumerId</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">running </span><span class="s2">= </span><span class="s0">true</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">@Override</span>
+        <span class="s0">public void </span><span class="s1">run</span><span class="s2">() {</span>
+            <span class="s0">while </span><span class="s2">(</span><span class="s1">running</span><span class="s2">) {</span>
+                <span class="s0">try </span><span class="s2">{</span>
+                    <span class="s1">String message </span><span class="s2">= </span><span class="s1">queue</span><span class="s2">.</span><span class="s1">consume</span><span class="s2">();</span>
+                    <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">consumerId </span><span class="s2">+ </span><span class="s6">&quot; consumed: &quot; </span><span class="s2">+ </span><span class="s1">message</span><span class="s2">);</span>
+                    <span class="s1">Thread</span><span class="s2">.</span><span class="s1">sleep</span><span class="s2">(</span><span class="s5">150</span><span class="s2">); </span><span class="s4">// 150ms 간격으로 메시지 처리</span>
+                <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">InterruptedException e</span><span class="s2">) {</span>
+                    <span class="s1">Thread</span><span class="s2">.</span><span class="s1">currentThread</span><span class="s2">().</span><span class="s1">interrupt</span><span class="s2">();</span>
+                    <span class="s0">break</span><span class="s2">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s0">public void </span><span class="s1">stop</span><span class="s2">() {</span>
+            <span class="s1">running </span><span class="s2">= </span><span class="s0">false</span><span class="s2">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 메시지 큐 테스트</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">testMessageQueue</span><span class="s2">() </span><span class="s0">throws </span><span class="s1">InterruptedException </span><span class="s2">{</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;========== Message Queue Test ==========&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">MessageQueue</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">queue </span><span class="s2">= </span><span class="s0">new </span><span class="s1">MessageQueue</span><span class="s2">&lt;&gt;(</span><span class="s5">10</span><span class="s2">);</span>
+        
+        <span class="s4">// 프로듀서와 컨슈머 스레드 생성</span>
+        <span class="s1">Thread producer1 </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Thread</span><span class="s2">(</span><span class="s0">new </span><span class="s1">MessageProducer</span><span class="s2">(</span><span class="s1">queue</span><span class="s2">, </span><span class="s6">&quot;Producer1&quot;</span><span class="s2">, </span><span class="s5">5</span><span class="s2">));</span>
+        <span class="s1">Thread producer2 </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Thread</span><span class="s2">(</span><span class="s0">new </span><span class="s1">MessageProducer</span><span class="s2">(</span><span class="s1">queue</span><span class="s2">, </span><span class="s6">&quot;Producer2&quot;</span><span class="s2">, </span><span class="s5">5</span><span class="s2">));</span>
+        
+        <span class="s1">MessageConsumer consumer1 </span><span class="s2">= </span><span class="s0">new </span><span class="s1">MessageConsumer</span><span class="s2">(</span><span class="s1">queue</span><span class="s2">, </span><span class="s6">&quot;Consumer1&quot;</span><span class="s2">);</span>
+        <span class="s1">MessageConsumer consumer2 </span><span class="s2">= </span><span class="s0">new </span><span class="s1">MessageConsumer</span><span class="s2">(</span><span class="s1">queue</span><span class="s2">, </span><span class="s6">&quot;Consumer2&quot;</span><span class="s2">);</span>
+        <span class="s1">Thread consumerThread1 </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Thread</span><span class="s2">(</span><span class="s1">consumer1</span><span class="s2">);</span>
+        <span class="s1">Thread consumerThread2 </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Thread</span><span class="s2">(</span><span class="s1">consumer2</span><span class="s2">);</span>
+        
+        <span class="s4">// 스레드 시작</span>
+        <span class="s1">consumerThread1</span><span class="s2">.</span><span class="s1">start</span><span class="s2">();</span>
+        <span class="s1">consumerThread2</span><span class="s2">.</span><span class="s1">start</span><span class="s2">();</span>
+        <span class="s1">producer1</span><span class="s2">.</span><span class="s1">start</span><span class="s2">();</span>
+        <span class="s1">producer2</span><span class="s2">.</span><span class="s1">start</span><span class="s2">();</span>
+        
+        <span class="s4">// 프로듀서 완료 대기</span>
+        <span class="s1">producer1</span><span class="s2">.</span><span class="s1">join</span><span class="s2">();</span>
+        <span class="s1">producer2</span><span class="s2">.</span><span class="s1">join</span><span class="s2">();</span>
+        
+        <span class="s4">// 잠시 대기 후 컨슈머 중지</span>
+        <span class="s1">Thread</span><span class="s2">.</span><span class="s1">sleep</span><span class="s2">(</span><span class="s5">2000</span><span class="s2">);</span>
+        <span class="s1">consumer1</span><span class="s2">.</span><span class="s1">stop</span><span class="s2">();</span>
+        <span class="s1">consumer2</span><span class="s2">.</span><span class="s1">stop</span><span class="s2">();</span>
+        
+        <span class="s1">consumerThread1</span><span class="s2">.</span><span class="s1">interrupt</span><span class="s2">();</span>
+        <span class="s1">consumerThread2</span><span class="s2">.</span><span class="s1">interrupt</span><span class="s2">();</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Final queue size: &quot; </span><span class="s2">+ </span><span class="s1">queue</span><span class="s2">.</span><span class="s1">size</span><span class="s2">());</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 메인 메소드 - 테스트 실행</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;메시지 큐 테스트 시작&quot;</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;=&quot;</span><span class="s2">.</span><span class="s1">repeat</span><span class="s2">(</span><span class="s5">40</span><span class="s2">));</span>
+        
+        <span class="s0">try </span><span class="s2">{</span>
+            <span class="s4">// 메시지 큐 테스트</span>
+            <span class="s1">testMessageQueue</span><span class="s2">();</span>
+        <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">InterruptedException e</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">err</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;테스트 중 인터럽트 발생: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+            <span class="s1">Thread</span><span class="s2">.</span><span class="s1">currentThread</span><span class="s2">().</span><span class="s1">interrupt</span><span class="s2">();</span>
+        <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">err</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;테스트 중 오류 발생: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;메시지 큐 테스트 완료&quot;</span><span class="s2">);</span>
+    <span class="s2">}    </span>
+    
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

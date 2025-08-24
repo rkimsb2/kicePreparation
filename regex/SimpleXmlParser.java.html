@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>SimpleXmlParser.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #7a7e85;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+SimpleXmlParser.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">regex</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">BufferedReader</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">FileReader</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">IOException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">regex</span><span class="s2">.</span><span class="s1">Matcher</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">regex</span><span class="s2">.</span><span class="s1">Pattern</span><span class="s2">;</span>
+
+<span class="s0">public class </span><span class="s1">SimpleXmlParser </span><span class="s2">{</span>
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) </span><span class="s0">throws </span><span class="s1">IOException </span><span class="s2">{</span>
+        <span class="s1">String filePath </span><span class="s2">= </span><span class="s3">&quot;sample.xml&quot;</span><span class="s2">;</span>
+        <span class="s1">BufferedReader reader </span><span class="s2">= </span><span class="s0">new </span><span class="s1">BufferedReader</span><span class="s2">(</span><span class="s0">new </span><span class="s1">FileReader</span><span class="s2">(</span><span class="s1">filePath</span><span class="s2">));</span>
+
+        <span class="s4">// &lt;title&gt;내용&lt;/title&gt; 형식 태그 값을 추출</span>
+        <span class="s1">Pattern xmlPattern </span><span class="s2">= </span><span class="s1">Pattern</span><span class="s2">.</span><span class="s1">compile</span><span class="s2">(</span><span class="s3">&quot;&lt;title&gt;(.*?)&lt;/title&gt;&quot;</span><span class="s2">);</span>
+
+        <span class="s1">String line</span><span class="s2">;</span>
+        <span class="s0">while </span><span class="s2">((</span><span class="s1">line </span><span class="s2">= </span><span class="s1">reader</span><span class="s2">.</span><span class="s1">readLine</span><span class="s2">()) != </span><span class="s0">null</span><span class="s2">) {</span>
+            <span class="s1">Matcher matcher </span><span class="s2">= </span><span class="s1">xmlPattern</span><span class="s2">.</span><span class="s1">matcher</span><span class="s2">(</span><span class="s1">line</span><span class="s2">);</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">matcher</span><span class="s2">.</span><span class="s1">find</span><span class="s2">()) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s3">&quot;추출된 title: &quot; </span><span class="s2">+ </span><span class="s1">matcher</span><span class="s2">.</span><span class="s1">group</span><span class="s2">(</span><span class="s5">1</span><span class="s2">));</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">reader</span><span class="s2">.</span><span class="s1">close</span><span class="s2">();</span>
+    <span class="s2">}</span>
+<span class="s2">}</span></pre>
+</body>
+</html>

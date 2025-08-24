@@ -1,0 +1,178 @@
+<html>
+<head>
+<title>ConsistentHashingSample2.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #6aab73;}
+.s5 { color: #2aacb8;}
+.s6 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ConsistentHashingSample2.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">algorithms</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">security</span><span class="s2">.</span><span class="s1">MessageDigest</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">security</span><span class="s2">.</span><span class="s1">NoSuchAlgorithmException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">HashSet</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Iterator</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Map</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Set</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">TreeMap</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Cloud/On-Premise 환경에서 요구되는 핵심 알고리즘 구현</span>
+ <span class="s3">* </span>
+ <span class="s3">* 분산 캐싱 알고리즘 (Consistent Hashing)</span>
+ <span class="s3">* 해시 공간 (Hash Space)</span>
+ <span class="s3">*   일반적으로 0 ~ 2³²-1의 정수 범위를 사용하는 원형 공간.</span>
+ <span class="s3">* 해시 링 (Hash Ring)</span>
+ <span class="s3">*   해시 공간을 원형 구조로 연결한 것. 맨 끝과 처음이 연결되어 순환 구조를 이룸.</span>
+ <span class="s3">* 키-서버 매핑</span>
+ <span class="s3">*   키와 서버 모두 해시 함수를 통해 링에 위치시킨다.</span>
+ <span class="s3">*   키는 자신보다 해시값이 큰 첫 번째 서버에 매핑된다 (시계 방향 탐색).</span>
+ <span class="s3">* </span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">ConsistentHashingSample2 </span><span class="s2">{</span>
+    
+    <span class="s0">static class </span><span class="s1">AdvancedConsistentHashRing </span><span class="s2">{</span>
+        <span class="s0">private </span><span class="s1">TreeMap</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">ring</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">nodes</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">virtualNodeCount</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">MessageDigest md5</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">AdvancedConsistentHashRing</span><span class="s2">(</span><span class="s0">int </span><span class="s1">virtualNodeCount</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">ring </span><span class="s2">= </span><span class="s0">new </span><span class="s1">TreeMap</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">nodes </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashSet</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">virtualNodeCount </span><span class="s2">= </span><span class="s1">virtualNodeCount</span><span class="s2">;</span>
+            <span class="s0">try </span><span class="s2">{</span>
+                <span class="s0">this</span><span class="s2">.</span><span class="s1">md5 </span><span class="s2">= </span><span class="s1">MessageDigest</span><span class="s2">.</span><span class="s1">getInstance</span><span class="s2">(</span><span class="s4">&quot;MD5&quot;</span><span class="s2">);</span>
+            <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">NoSuchAlgorithmException e</span><span class="s2">) {</span>
+                <span class="s0">throw new </span><span class="s1">RuntimeException</span><span class="s2">(</span><span class="s4">&quot;MD5 알고리즘을 찾을 수 없습니다&quot;</span><span class="s2">, </span><span class="s1">e</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 노드 추가 - 다양한 키 전략 사용</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">addNode</span><span class="s2">(</span><span class="s1">String node</span><span class="s2">) {</span>
+            <span class="s1">nodes</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">node</span><span class="s2">);</span>
+            
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">virtualNodeCount</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+                <span class="s1">String virtualNode1 </span><span class="s2">= </span><span class="s1">node </span><span class="s2">+ </span><span class="s4">&quot;#vnode#&quot; </span><span class="s2">+ </span><span class="s1">i</span><span class="s2">;</span>
+                <span class="s0">long </span><span class="s1">hash1 </span><span class="s2">= </span><span class="s1">calculateMD5Hash</span><span class="s2">(</span><span class="s1">virtualNode1</span><span class="s2">);</span>
+                <span class="s1">ring</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">hash1</span><span class="s2">, </span><span class="s1">node</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 노드 제거</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">removeNode</span><span class="s2">(</span><span class="s1">String node</span><span class="s2">) {</span>
+            <span class="s1">nodes</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">(</span><span class="s1">node</span><span class="s2">);</span>
+            
+            <span class="s6">// 해당 노드의 모든 가상 노드 제거</span>
+            <span class="s1">Iterator</span><span class="s2">&lt;</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">String</span><span class="s2">&gt;&gt; </span><span class="s1">iterator </span><span class="s2">= </span><span class="s1">ring</span><span class="s2">.</span><span class="s1">entrySet</span><span class="s2">().</span><span class="s1">iterator</span><span class="s2">();</span>
+            <span class="s0">while </span><span class="s2">(</span><span class="s1">iterator</span><span class="s2">.</span><span class="s1">hasNext</span><span class="s2">()) {</span>
+                <span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">entry </span><span class="s2">= </span><span class="s1">iterator</span><span class="s2">.</span><span class="s1">next</span><span class="s2">();</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">().</span><span class="s1">equals</span><span class="s2">(</span><span class="s1">node</span><span class="s2">)) {</span>
+                    <span class="s1">iterator</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">();</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 키에 대한 노드 찾기</span>
+         <span class="s3">*/</span>
+        <span class="s0">public </span><span class="s1">String getNode</span><span class="s2">(</span><span class="s1">String key</span><span class="s2">) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">ring</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) </span><span class="s0">return null</span><span class="s2">;</span>
+            
+            <span class="s0">long </span><span class="s1">hash </span><span class="s2">= </span><span class="s1">calculateMD5Hash</span><span class="s2">(</span><span class="s1">key</span><span class="s2">);</span>
+            <span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">entry </span><span class="s2">= </span><span class="s1">ring</span><span class="s2">.</span><span class="s1">ceilingEntry</span><span class="s2">(</span><span class="s1">hash</span><span class="s2">);</span>
+            
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">entry </span><span class="s2">== </span><span class="s0">null</span><span class="s2">) {</span>
+                <span class="s1">entry </span><span class="s2">= </span><span class="s1">ring</span><span class="s2">.</span><span class="s1">firstEntry</span><span class="s2">();</span>
+            <span class="s2">}</span>
+            
+            <span class="s0">return </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* MD5 기반 해시 함수 (더 균등한 분산)</span>
+         <span class="s3">*/</span>
+        <span class="s0">private long </span><span class="s1">calculateMD5Hash</span><span class="s2">(</span><span class="s1">String input</span><span class="s2">) {</span>
+            <span class="s1">md5</span><span class="s2">.</span><span class="s1">reset</span><span class="s2">();</span>
+            <span class="s1">md5</span><span class="s2">.</span><span class="s1">update</span><span class="s2">(</span><span class="s1">input</span><span class="s2">.</span><span class="s1">getBytes</span><span class="s2">());</span>
+            <span class="s0">byte</span><span class="s2">[] </span><span class="s1">digest </span><span class="s2">= </span><span class="s1">md5</span><span class="s2">.</span><span class="s1">digest</span><span class="s2">();</span>
+            
+            <span class="s0">long </span><span class="s1">hash </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s5">8</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+                <span class="s1">hash </span><span class="s2">&lt;&lt;= </span><span class="s5">8</span><span class="s2">;</span>
+                <span class="s1">hash </span><span class="s2">|= ((</span><span class="s0">int</span><span class="s2">) </span><span class="s1">digest</span><span class="s2">[</span><span class="s1">i</span><span class="s2">]) &amp; </span><span class="s5">0xFF</span><span class="s2">;</span>
+            <span class="s2">}</span>
+            
+            <span class="s0">return </span><span class="s1">hash</span><span class="s2">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 일관된 해싱 테스트</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">testConsistentHashing</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;========== Consistent Hashing Test ==========&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">AdvancedConsistentHashRing ring </span><span class="s2">= </span><span class="s0">new </span><span class="s1">AdvancedConsistentHashRing</span><span class="s2">(</span><span class="s5">3</span><span class="s2">);</span>
+        
+        <span class="s6">// 노드 추가</span>
+        <span class="s1">ring</span><span class="s2">.</span><span class="s1">addNode</span><span class="s2">(</span><span class="s4">&quot;node1&quot;</span><span class="s2">);</span>
+        <span class="s1">ring</span><span class="s2">.</span><span class="s1">addNode</span><span class="s2">(</span><span class="s4">&quot;node2&quot;</span><span class="s2">);</span>
+        <span class="s1">ring</span><span class="s2">.</span><span class="s1">addNode</span><span class="s2">(</span><span class="s4">&quot;node3&quot;</span><span class="s2">);</span>
+        
+        <span class="s6">// 키 분배 테스트</span>
+        <span class="s1">String</span><span class="s2">[] </span><span class="s1">keys </span><span class="s2">= {</span><span class="s4">&quot;user1&quot;</span><span class="s2">, </span><span class="s4">&quot;user2&quot;</span><span class="s2">, </span><span class="s4">&quot;user3&quot;</span><span class="s2">, </span><span class="s4">&quot;user4&quot;</span><span class="s2">, </span><span class="s4">&quot;user5&quot;</span><span class="s2">, </span><span class="s4">&quot;data1&quot;</span><span class="s2">, </span><span class="s4">&quot;data2&quot;</span><span class="s2">, </span><span class="s4">&quot;data3&quot;</span><span class="s2">};</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;--- Key Distribution ---&quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">String key </span><span class="s2">: </span><span class="s1">keys</span><span class="s2">) {</span>
+            <span class="s1">String node </span><span class="s2">= </span><span class="s1">ring</span><span class="s2">.</span><span class="s1">getNode</span><span class="s2">(</span><span class="s1">key</span><span class="s2">);</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;Key: &quot; </span><span class="s2">+ </span><span class="s1">key </span><span class="s2">+ </span><span class="s4">&quot; -&gt; Node: &quot; </span><span class="s2">+ </span><span class="s1">node</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s6">// 노드 제거 후 테스트</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;--- After removing node2 ---&quot;</span><span class="s2">);</span>
+        <span class="s1">ring</span><span class="s2">.</span><span class="s1">removeNode</span><span class="s2">(</span><span class="s4">&quot;node2&quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">String key </span><span class="s2">: </span><span class="s1">keys</span><span class="s2">) {</span>
+            <span class="s1">String node </span><span class="s2">= </span><span class="s1">ring</span><span class="s2">.</span><span class="s1">getNode</span><span class="s2">(</span><span class="s1">key</span><span class="s2">);</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;Key: &quot; </span><span class="s2">+ </span><span class="s1">key </span><span class="s2">+ </span><span class="s4">&quot; -&gt; Node: &quot; </span><span class="s2">+ </span><span class="s1">node</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 메인 메소드 - 테스트 실행</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;일관된 해싱 테스트 테스트 시작&quot;</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;=&quot;</span><span class="s2">.</span><span class="s1">repeat</span><span class="s2">(</span><span class="s5">40</span><span class="s2">));</span>
+        
+        <span class="s0">try </span><span class="s2">{</span>
+            <span class="s6">// 일관된 해싱 테스트</span>
+            <span class="s1">testConsistentHashing</span><span class="s2">();</span>
+            
+        <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">err</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;테스트 중 오류 발생: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s4">&quot;일관된 해싱 테스트 테스트 완료&quot;</span><span class="s2">);</span>
+    <span class="s2">}   </span>
+<span class="s2">}</span></pre>
+</body>
+</html>

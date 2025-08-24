@@ -1,0 +1,235 @@
+<html>
+<head>
+<title>ResourceMonitoringSample.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #7a7e85;}
+.s5 { color: #2aacb8;}
+.s6 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ResourceMonitoringSample.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">algorithms</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">HashMap</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">LinkedList</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Map</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Queue</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Timer</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">TimerTask</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Cloud/On-Premise 환경에서 요구되는 핵심 알고리즘 구현</span>
+ <span class="s3">* </span>
+ <span class="s3">* 리소스 모니터링 알고리즘 (Moving Average)</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">ResourceMonitoringSample </span><span class="s2">{</span>
+
+    <span class="s4">// ===== 리소스 모니터링 알고리즘 =====</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 이동 평균을 계산하는 클래스</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">MovingAverageCalculator </span><span class="s2">{</span>
+        <span class="s0">private </span><span class="s1">Queue</span><span class="s2">&lt;</span><span class="s1">Double</span><span class="s2">&gt; </span><span class="s1">values</span><span class="s2">;</span>
+        <span class="s0">private int </span><span class="s1">windowSize</span><span class="s2">;</span>
+        <span class="s0">private double </span><span class="s1">sum</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">MovingAverageCalculator</span><span class="s2">(</span><span class="s0">int </span><span class="s1">windowSize</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">values </span><span class="s2">= </span><span class="s0">new </span><span class="s1">LinkedList</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">windowSize </span><span class="s2">= </span><span class="s1">windowSize</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">sum </span><span class="s2">= </span><span class="s5">0.0</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 새로운 값을 추가하고 이동 평균을 계산하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public double </span><span class="s1">addValue</span><span class="s2">(</span><span class="s0">double </span><span class="s1">value</span><span class="s2">) {</span>
+            <span class="s1">values</span><span class="s2">.</span><span class="s1">offer</span><span class="s2">(</span><span class="s1">value</span><span class="s2">);</span>
+            <span class="s1">sum </span><span class="s2">+= </span><span class="s1">value</span><span class="s2">;</span>
+            
+            <span class="s4">// 윈도우 크기를 초과하면 가장 오래된 값을 제거</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">values</span><span class="s2">.</span><span class="s1">size</span><span class="s2">() &gt; </span><span class="s1">windowSize</span><span class="s2">) {</span>
+                <span class="s0">double </span><span class="s1">oldValue </span><span class="s2">= </span><span class="s1">values</span><span class="s2">.</span><span class="s1">poll</span><span class="s2">();</span>
+                <span class="s1">sum </span><span class="s2">-= </span><span class="s1">oldValue</span><span class="s2">;</span>
+            <span class="s2">}</span>
+            
+            <span class="s0">return </span><span class="s1">getAverage</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 현재 이동 평균을 반환하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public double </span><span class="s1">getAverage</span><span class="s2">() {</span>
+            <span class="s0">return </span><span class="s1">values</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">() ? </span><span class="s5">0.0 </span><span class="s2">: </span><span class="s1">sum </span><span class="s2">/ </span><span class="s1">values</span><span class="s2">.</span><span class="s1">size</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 현재 값의 개수를 반환하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public int </span><span class="s1">getCount</span><span class="s2">() {</span>
+            <span class="s0">return </span><span class="s1">values</span><span class="s2">.</span><span class="s1">size</span><span class="s2">();</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 리소스 모니터링 클래스</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">ResourceMonitor </span><span class="s2">{</span>
+        <span class="s0">private </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">MovingAverageCalculator</span><span class="s2">&gt; </span><span class="s1">metrics</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">&gt; </span><span class="s1">thresholds</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">Timer timer</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">ResourceMonitor</span><span class="s2">() {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">metrics </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">thresholds </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">timer </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Timer</span><span class="s2">(</span><span class="s0">true</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 모니터링할 메트릭을 추가하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">addMetric</span><span class="s2">(</span><span class="s1">String metricName</span><span class="s2">, </span><span class="s0">int </span><span class="s1">windowSize</span><span class="s2">, </span><span class="s0">double </span><span class="s1">threshold</span><span class="s2">) {</span>
+            <span class="s1">metrics</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">metricName</span><span class="s2">, </span><span class="s0">new </span><span class="s1">MovingAverageCalculator</span><span class="s2">(</span><span class="s1">windowSize</span><span class="s2">));</span>
+            <span class="s1">thresholds</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">metricName</span><span class="s2">, </span><span class="s1">threshold</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 메트릭 값을 업데이트하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s1">String metricName</span><span class="s2">, </span><span class="s0">double </span><span class="s1">value</span><span class="s2">) {</span>
+            <span class="s1">MovingAverageCalculator calculator </span><span class="s2">= </span><span class="s1">metrics</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">metricName</span><span class="s2">);</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">calculator </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">) {</span>
+                <span class="s0">double </span><span class="s1">average </span><span class="s2">= </span><span class="s1">calculator</span><span class="s2">.</span><span class="s1">addValue</span><span class="s2">(</span><span class="s1">value</span><span class="s2">);</span>
+                <span class="s1">checkThreshold</span><span class="s2">(</span><span class="s1">metricName</span><span class="s2">, </span><span class="s1">average</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 임계값을 확인하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">private void </span><span class="s1">checkThreshold</span><span class="s2">(</span><span class="s1">String metricName</span><span class="s2">, </span><span class="s0">double </span><span class="s1">average</span><span class="s2">) {</span>
+            <span class="s1">Double threshold </span><span class="s2">= </span><span class="s1">thresholds</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">metricName</span><span class="s2">);</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">threshold </span><span class="s2">!= </span><span class="s0">null </span><span class="s2">&amp;&amp; </span><span class="s1">average </span><span class="s2">&gt; </span><span class="s1">threshold</span><span class="s2">) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;ALERT: &quot; </span><span class="s2">+ </span><span class="s1">metricName </span><span class="s2">+ </span><span class="s6">&quot; average (&quot; </span><span class="s2">+ </span>
+                                 <span class="s1">String</span><span class="s2">.</span><span class="s1">format</span><span class="s2">(</span><span class="s6">&quot;%.2f&quot;</span><span class="s2">, </span><span class="s1">average</span><span class="s2">) + </span><span class="s6">&quot;) exceeds threshold (&quot; </span><span class="s2">+ </span><span class="s1">threshold </span><span class="s2">+ </span><span class="s6">&quot;)&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 모든 메트릭의 현재 상태를 출력하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">printMetrics</span><span class="s2">() {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;=== Resource Metrics ===&quot;</span><span class="s2">);</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">MovingAverageCalculator</span><span class="s2">&gt; </span><span class="s1">entry </span><span class="s2">: </span><span class="s1">metrics</span><span class="s2">.</span><span class="s1">entrySet</span><span class="s2">()) {</span>
+                <span class="s1">String metricName </span><span class="s2">= </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getKey</span><span class="s2">();</span>
+                <span class="s1">MovingAverageCalculator calculator </span><span class="s2">= </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">();</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">metricName </span><span class="s2">+ </span><span class="s6">&quot;: &quot; </span><span class="s2">+ </span><span class="s1">String</span><span class="s2">.</span><span class="s1">format</span><span class="s2">(</span><span class="s6">&quot;%.2f&quot;</span><span class="s2">, </span><span class="s1">calculator</span><span class="s2">.</span><span class="s1">getAverage</span><span class="s2">()) + </span>
+                                 <span class="s6">&quot; (count: &quot; </span><span class="s2">+ </span><span class="s1">calculator</span><span class="s2">.</span><span class="s1">getCount</span><span class="s2">() + </span><span class="s6">&quot;)&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 주기적으로 랜덤 메트릭을 생성하는 메소드 (테스트용)</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">startRandomMetricGeneration</span><span class="s2">() {</span>
+            <span class="s1">timer</span><span class="s2">.</span><span class="s1">scheduleAtFixedRate</span><span class="s2">(</span><span class="s0">new </span><span class="s1">TimerTask</span><span class="s2">() {</span>
+                <span class="s1">@Override</span>
+                <span class="s0">public void </span><span class="s1">run</span><span class="s2">() {</span>
+                    <span class="s4">// CPU 사용률 시뮬레이션 (0-100%)</span>
+                    <span class="s0">double </span><span class="s1">cpuUsage </span><span class="s2">= </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">random</span><span class="s2">() * </span><span class="s5">100</span><span class="s2">;</span>
+                    <span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;cpu_usage&quot;</span><span class="s2">, </span><span class="s1">cpuUsage</span><span class="s2">);</span>
+                    
+                    <span class="s4">// 메모리 사용률 시뮬레이션 (0-100%)</span>
+                    <span class="s0">double </span><span class="s1">memoryUsage </span><span class="s2">= </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">random</span><span class="s2">() * </span><span class="s5">100</span><span class="s2">;</span>
+                    <span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;memory_usage&quot;</span><span class="s2">, </span><span class="s1">memoryUsage</span><span class="s2">);</span>
+                    
+                    <span class="s4">// 응답 시간 시뮬레이션 (0-1000ms)</span>
+                    <span class="s0">double </span><span class="s1">responseTime </span><span class="s2">= </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">random</span><span class="s2">() * </span><span class="s5">1000</span><span class="s2">;</span>
+                    <span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;response_time&quot;</span><span class="s2">, </span><span class="s1">responseTime</span><span class="s2">);</span>
+                <span class="s2">}</span>
+            <span class="s2">}, </span><span class="s5">0</span><span class="s2">, </span><span class="s5">1000</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s0">public void </span><span class="s1">stopMonitoring</span><span class="s2">() {</span>
+            <span class="s1">timer</span><span class="s2">.</span><span class="s1">cancel</span><span class="s2">();</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 리소스 모니터링 테스트</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">testResourceMonitoring</span><span class="s2">() </span><span class="s0">throws </span><span class="s1">InterruptedException </span><span class="s2">{</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;========== Resource Monitoring Test ==========&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">ResourceMonitor monitor </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ResourceMonitor</span><span class="s2">();</span>
+        
+        <span class="s4">// 메트릭 추가 (메트릭명, 윈도우 크기, 임계값)</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">addMetric</span><span class="s2">(</span><span class="s6">&quot;cpu_usage&quot;</span><span class="s2">, </span><span class="s5">5</span><span class="s2">, </span><span class="s5">80.0</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">addMetric</span><span class="s2">(</span><span class="s6">&quot;memory_usage&quot;</span><span class="s2">, </span><span class="s5">5</span><span class="s2">, </span><span class="s5">85.0</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">addMetric</span><span class="s2">(</span><span class="s6">&quot;response_time&quot;</span><span class="s2">, </span><span class="s5">5</span><span class="s2">, </span><span class="s5">500.0</span><span class="s2">);</span>
+        
+        <span class="s4">// 수동으로 몇 개의 메트릭 값 추가</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;--- Manual Metric Updates ---&quot;</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;cpu_usage&quot;</span><span class="s2">, </span><span class="s5">45.0</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;cpu_usage&quot;</span><span class="s2">, </span><span class="s5">55.0</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;cpu_usage&quot;</span><span class="s2">, </span><span class="s5">85.0</span><span class="s2">); </span><span class="s4">// 임계값 초과</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;cpu_usage&quot;</span><span class="s2">, </span><span class="s5">90.0</span><span class="s2">); </span><span class="s4">// 임계값 초과</span>
+        
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;memory_usage&quot;</span><span class="s2">, </span><span class="s5">70.0</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;memory_usage&quot;</span><span class="s2">, </span><span class="s5">75.0</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;memory_usage&quot;</span><span class="s2">, </span><span class="s5">80.0</span><span class="s2">);</span>
+        
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;response_time&quot;</span><span class="s2">, </span><span class="s5">200.0</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;response_time&quot;</span><span class="s2">, </span><span class="s5">300.0</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">updateMetric</span><span class="s2">(</span><span class="s6">&quot;response_time&quot;</span><span class="s2">, </span><span class="s5">600.0</span><span class="s2">); </span><span class="s4">// 임계값 초과</span>
+        
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">printMetrics</span><span class="s2">();</span>
+        
+        <span class="s4">// 자동 메트릭 생성 시작</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;--- Automatic Metric Generation (5 seconds) ---&quot;</span><span class="s2">);</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">startRandomMetricGeneration</span><span class="s2">();</span>
+        
+        <span class="s4">// 5초 동안 실행</span>
+        <span class="s1">Thread</span><span class="s2">.</span><span class="s1">sleep</span><span class="s2">(</span><span class="s5">5000</span><span class="s2">);</span>
+        
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">stopMonitoring</span><span class="s2">();</span>
+        <span class="s1">monitor</span><span class="s2">.</span><span class="s1">printMetrics</span><span class="s2">();</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 메인 메소드 - 테스트 실행</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;리소스 모니터링 테스트 시작&quot;</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;=&quot;</span><span class="s2">.</span><span class="s1">repeat</span><span class="s2">(</span><span class="s5">40</span><span class="s2">));</span>
+        
+        <span class="s0">try </span><span class="s2">{</span>
+            <span class="s4">// 리소스 모니터링 테스트</span>
+            <span class="s1">testResourceMonitoring</span><span class="s2">();</span>
+        <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">InterruptedException e</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">err</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;테스트 중 인터럽트 발생: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+            <span class="s1">Thread</span><span class="s2">.</span><span class="s1">currentThread</span><span class="s2">().</span><span class="s1">interrupt</span><span class="s2">();</span>
+        <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">err</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;테스트 중 오류 발생: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;리소스 모니터링 테스트 완료&quot;</span><span class="s2">);</span>
+    <span class="s2">}    </span>
+    
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<html>
+<head>
+<title>DataPartitioningSample.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #7a7e85;}
+.s5 { color: #2aacb8;}
+.s6 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+DataPartitioningSample.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">example</span><span class="s2">.</span><span class="s1">algorithms</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">ArrayList</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Arrays</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">HashMap</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Map</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Cloud/On-Premise 환경에서 요구되는 핵심 알고리즘 구현</span>
+ <span class="s3">* </span>
+ <span class="s3">* 데이터 파티셔닝 알고리즘 (Hash-based Partitioning)</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">DataPartitioningSample </span><span class="s2">{</span>
+
+    <span class="s4">// ===== 데이터 파티셔닝 알고리즘 =====</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 해시 기반 파티셔닝 클래스</span>
+     <span class="s3">*/</span>
+    <span class="s0">static class </span><span class="s1">HashPartitioner </span><span class="s2">{</span>
+        <span class="s0">private int </span><span class="s1">partitionCount</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">partitions</span><span class="s2">;</span>
+        
+        <span class="s0">public </span><span class="s1">HashPartitioner</span><span class="s2">(</span><span class="s0">int </span><span class="s1">partitionCount</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">partitionCount </span><span class="s2">= </span><span class="s1">partitionCount</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">partitions </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">partitionCount</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+                <span class="s1">partitions</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s6">&quot;partition_&quot; </span><span class="s2">+ </span><span class="s1">i</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 키를 기반으로 파티션을 결정하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public </span><span class="s1">String getPartition</span><span class="s2">(</span><span class="s1">String key</span><span class="s2">) {</span>
+            <span class="s0">int </span><span class="s1">hash </span><span class="s2">= </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">abs</span><span class="s2">(</span><span class="s1">key</span><span class="s2">.</span><span class="s1">hashCode</span><span class="s2">());</span>
+            <span class="s0">int </span><span class="s1">partitionIndex </span><span class="s2">= </span><span class="s1">hash </span><span class="s2">% </span><span class="s1">partitionCount</span><span class="s2">;</span>
+            <span class="s0">return </span><span class="s1">partitions</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">partitionIndex</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 데이터를 파티션별로 분배하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt;&gt; </span><span class="s1">distributeData</span><span class="s2">(</span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">data</span><span class="s2">) {</span>
+            <span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt;&gt; </span><span class="s1">partitionedData </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+            
+            <span class="s4">// 파티션 초기화</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">String partition </span><span class="s2">: </span><span class="s1">partitions</span><span class="s2">) {</span>
+                <span class="s1">partitionedData</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">partition</span><span class="s2">, </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;());</span>
+            <span class="s2">}</span>
+            
+            <span class="s4">// 데이터를 각 파티션에 분배</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">String item </span><span class="s2">: </span><span class="s1">data</span><span class="s2">) {</span>
+                <span class="s1">String partition </span><span class="s2">= </span><span class="s1">getPartition</span><span class="s2">(</span><span class="s1">item</span><span class="s2">);</span>
+                <span class="s1">partitionedData</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">partition</span><span class="s2">).</span><span class="s1">add</span><span class="s2">(</span><span class="s1">item</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            
+            <span class="s0">return </span><span class="s1">partitionedData</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        
+        <span class="s3">/**</span>
+         <span class="s3">* 파티션 통계를 출력하는 메소드</span>
+         <span class="s3">*/</span>
+        <span class="s0">public void </span><span class="s1">printPartitionStats</span><span class="s2">(</span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt;&gt; </span><span class="s1">partitionedData</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;=== Partition Statistics ===&quot;</span><span class="s2">);</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt;&gt; </span><span class="s1">entry </span><span class="s2">: </span><span class="s1">partitionedData</span><span class="s2">.</span><span class="s1">entrySet</span><span class="s2">()) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getKey</span><span class="s2">() + </span><span class="s6">&quot;: &quot; </span><span class="s2">+ </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">().</span><span class="s1">size</span><span class="s2">() + </span><span class="s6">&quot; items&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 데이터 파티셔닝 테스트</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">testDataPartitioning</span><span class="s2">() {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;========== Data Partitioning Test ==========&quot;</span><span class="s2">);</span>
+        
+        <span class="s1">HashPartitioner partitioner </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashPartitioner</span><span class="s2">(</span><span class="s5">4</span><span class="s2">);</span>
+        
+        <span class="s4">// 테스트 데이터 생성</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">data </span><span class="s2">= </span><span class="s1">Arrays</span><span class="s2">.</span><span class="s1">asList</span><span class="s2">(</span>
+            <span class="s6">&quot;user1&quot;</span><span class="s2">, </span><span class="s6">&quot;user2&quot;</span><span class="s2">, </span><span class="s6">&quot;user3&quot;</span><span class="s2">, </span><span class="s6">&quot;user4&quot;</span><span class="s2">, </span><span class="s6">&quot;user5&quot;</span><span class="s2">,</span>
+            <span class="s6">&quot;order1&quot;</span><span class="s2">, </span><span class="s6">&quot;order2&quot;</span><span class="s2">, </span><span class="s6">&quot;order3&quot;</span><span class="s2">, </span><span class="s6">&quot;order4&quot;</span><span class="s2">, </span><span class="s6">&quot;order5&quot;</span><span class="s2">,</span>
+            <span class="s6">&quot;product1&quot;</span><span class="s2">, </span><span class="s6">&quot;product2&quot;</span><span class="s2">, </span><span class="s6">&quot;product3&quot;</span><span class="s2">, </span><span class="s6">&quot;product4&quot;</span><span class="s2">, </span><span class="s6">&quot;product5&quot;</span>
+        <span class="s2">);</span>
+        
+        <span class="s4">// 데이터 분배</span>
+        <span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt;&gt; </span><span class="s1">partitionedData </span><span class="s2">= </span><span class="s1">partitioner</span><span class="s2">.</span><span class="s1">distributeData</span><span class="s2">(</span><span class="s1">data</span><span class="s2">);</span>
+        
+        <span class="s4">// 결과 출력</span>
+        <span class="s1">partitioner</span><span class="s2">.</span><span class="s1">printPartitionStats</span><span class="s2">(</span><span class="s1">partitionedData</span><span class="s2">);</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;--- Detailed Distribution ---&quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt;&gt; </span><span class="s1">entry </span><span class="s2">: </span><span class="s1">partitionedData</span><span class="s2">.</span><span class="s1">entrySet</span><span class="s2">()) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getKey</span><span class="s2">() + </span><span class="s6">&quot;: &quot; </span><span class="s2">+ </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">());</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+    <span class="s2">}    </span>
+    
+    <span class="s3">/**</span>
+     <span class="s3">* 메인 메소드 - 테스트 실행</span>
+     <span class="s3">*/</span>
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) {</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;Cloud/On-Premise 데이터 파티셔닝 테스트 시작&quot;</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;=&quot;</span><span class="s2">.</span><span class="s1">repeat</span><span class="s2">(</span><span class="s5">40</span><span class="s2">));</span>
+        
+        <span class="s0">try </span><span class="s2">{</span>
+            <span class="s4">// 데이터 파티셔닝 테스트</span>
+            <span class="s1">testDataPartitioning</span><span class="s2">();</span>
+        <span class="s2">} </span><span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">err</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;테스트 중 오류 발생: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+        <span class="s2">}</span>
+        
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s6">&quot;데이터 파티셔닝 테스트 완료&quot;</span><span class="s2">);</span>
+    <span class="s2">}    </span>
+    
+<span class="s2">}</span>
+</pre>
+</body>
+</html>
